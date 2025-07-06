@@ -9,8 +9,9 @@ from pathlib import Path
 # プロジェクトルートをパスに追加
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "src"))
 
-from main import TheaterScrapingOrchestrator
+from src.scraping.main import TheaterScrapingOrchestrator
 
 def run_single_theater_test():
     """単一映画館のテストスクレイピング"""

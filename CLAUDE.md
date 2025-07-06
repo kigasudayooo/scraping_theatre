@@ -1,27 +1,27 @@
 # CLAUDE.md
 
-This file provides comprehensive guidance to Claude Code (claude.ai/code) when working with this Japanese cinema web scraping project.
+This file provides comprehensive guidance to Claude Code (claude.ai/code) when working with this Japanese cinema web scraping and Discord bot project.
 
 ## Project Overview
 
-A specialized web scraping toolkit for extracting movie schedule information from Japanese cinema websites. The project focuses on extracting structured data including movie titles, screening schedules, cast information, and event details, then outputting to CSV files with optional Google Sheets integration.
+A comprehensive system combining web scraping of Japanese cinema websites with Discord bot integration for automated notifications and interactive movie information queries. The project extracts structured movie data, schedules, and theater information, then provides weekly Discord notifications and on-demand movie searches.
 
 **Key Features:**
-- Multi-format HTML parsing for various cinema websites
-- Batch processing capabilities with CLI tools
-- Japanese text support with proper encoding
-- Google Sheets integration for data management
-- Comprehensive analysis tools for HTML structure compatibility
+- **Web Scraping**: Multi-theater HTML parsing with object-oriented architecture
+- **Discord Integration**: Weekly notifications and interactive movie queries
+- **Data Management**: Structured data models with CSV export and Google Sheets integration
+- **Scalable Architecture**: Abstract base classes for easy theater expansion
+- **Japanese Text Support**: Proper encoding and formatting for Japanese content
 
 ## Technology Stack
 
 ### Core Dependencies
 - **Python**: >=3.11 (managed with uv)
-- **BeautifulSoup4**: HTML parsing and scraping
-- **Pandas**: Data manipulation and CSV export
-- **Requests**: HTTP client for web scraping
-- **Jupyter**: Interactive development environment
-- **gspread + oauth2client**: Google Sheets API integration
+- **Web Scraping**: BeautifulSoup4, Selenium, Requests
+- **Data Processing**: Pandas for CSV export and data manipulation
+- **Discord Integration**: discord.py for bot functionality
+- **Development**: Jupyter for interactive development
+- **APIs**: gspread + oauth2client for Google Sheets integration
 
 ### Development Environment Setup
 ```bash
@@ -30,232 +30,279 @@ uv sync
 
 # Verify installation
 uv run python --version
-uv run python -c "import pandas, bs4; print('Dependencies OK')"
-```
-
-## Core Scripts and Usage
-
-### 1. Single File Processing
-```bash
-# Process one HTML file
-uv run python scrape_single_html.py "html/cinema_schedule.html"
-```
-
-### 2. Batch Processing
-```bash
-# Process all HTML files in directory
-uv run python scrape_all_html.py
-
-# Advanced batch processing with options
-uv run python batch_scraper.py html/*.html --combine --verbose
-uv run python batch_scraper.py html/shimotakaido.html html/eurospace.html -c -v
-```
-
-### 3. HTML Structure Analysis
-```bash
-# Analyze all HTML files for compatibility
-uv run python html_analyzer.py all
-
-# Detailed analysis of specific file
-uv run python html_analyzer.py "html/cinema.html" detailed
-```
-
-### 4. Development Environment
-```bash
-# Start Jupyter notebook for interactive development
-uv run jupyter notebook
-
-# Launch specific notebook
-uv run jupyter notebook notebook/test.ipynb
+uv run python -c "import pandas, bs4, discord; print('Dependencies OK')"
 ```
 
 ## Project Architecture
 
 ```
 scraping_theatre/
-├── scrape_single_html.py     # Single file processor
-├── scrape_all_html.py        # Batch processor (simple)
-├── batch_scraper.py          # Advanced batch processor with CLI
-├── html_analyzer.py          # HTML structure analysis tool
-├── hello.py                  # Entry point script
-├── notebook/
-│   └── test.ipynb           # Main development notebook
-├── html/                    # Sample HTML files for testing
-├── data/                    # Output CSV files
-├── doc/
-│   ├── manual.md           # Comprehensive setup guide
-│   └── scraping_scripts.md # Japanese usage documentation
-├── pyproject.toml          # Project configuration
-└── uv.lock                 # Dependency lock file
+├── 📚 **Root Level**
+│   ├── README.md                    # Project overview
+│   ├── CLAUDE.md                    # Claude instructions
+│   ├── pyproject.toml              # Python configuration
+│   ├── uv.lock                     # Dependency lock
+│   ├── run_scraping.py            # Scraping execution
+│   └── run_discord_bot.py         # Discord Bot execution
+│
+├── 📦 **src/ - Source Code**
+│   ├── scraping/                   # Scraping module
+│   │   ├── models.py              # Data models (MovieInfo, TheaterInfo, etc.)
+│   │   ├── base_scraper.py        # Abstract base scraper class
+│   │   ├── main.py                # TheaterScrapingOrchestrator
+│   │   └── scrapers/              # Theater-specific implementations
+│   │       ├── ks_cinema_scraper.py
+│   │       ├── pole_pole_scraper.py
+│   │       ├── eurospace_scraper.py
+│   │       ├── shimotakaido_scraper.py
+│   │       ├── waseda_shochiku_scraper.py
+│   │       └── shinjuku_musashino_scraper.py
+│   │
+│   ├── discord_bot/               # Discord Bot module
+│   │   ├── discord_bot_main.py    # CombinedMovieBot (main implementation)
+│   │   ├── weekly_notifier.py     # Weekly notification system
+│   │   ├── interactive_bot.py     # Interactive query handling
+│   │   ├── discord_config.py      # Configuration management
+│   │   └── discord_models.py      # Discord-specific data models
+│   │
+│   └── utils/                     # Legacy utilities
+│       ├── html_analyzer.py       # HTML structure analysis
+│       ├── batch_scraper.py       # Batch processing
+│       ├── scrape_all_html.py     # Legacy batch processor
+│       └── scrape_single_html.py  # Legacy single processor
+│
+├── 📖 **docs/ - Documentation**
+│   ├── DISCORD_BOT_SETUP_GUIDE.md # Comprehensive Discord setup guide
+│   └── scraping_scripts.md       # Japanese documentation
+│
+├── ⚙️ **config/ - Configuration**
+│   └── .env.example              # Environment variables template
+│
+├── 📊 **data/ - Data Storage**    # Generated CSV files
+├── 📝 **logs/ - Log Files**       # Bot and scraping logs
+└── 📄 **html/ - Reference HTML**  # Sample HTML files for testing
 ```
 
-## Data Extraction Schema
+## Core System Components
 
-The scraper extracts structured movie data with the following fields:
+### 1. Web Scraping System
 
-| Field | Japanese | Description |
-|-------|----------|-------------|
-| タイトル | Title | Movie title |
-| 特集名 | Special Feature | Special screening series name |
-| 制作年/国/時間 | Year/Country/Duration | Production details |
-| 監督/出演 | Director/Cast | Director and cast information |
-| 概要 | Synopsis | Movie synopsis/description |
-| 上映スケジュール | Screening Schedule | Show times and dates |
-| 料金 | Pricing | Ticket pricing information |
-| 受賞歴 | Awards | Awards and recognition |
-| イベント情報 | Event Information | Special events and Q&A sessions |
-| シネマ名 | Cinema Name | Source cinema name (auto-added) |
-| ファイル名 | Source Filename | Source HTML filename (batch mode) |
+**Main Execution:**
+```bash
+# Scrape all theaters
+python run_scraping.py all
 
-## HTML Parsing Strategy
-
-### Target HTML Structure
-The scrapers are optimized for the following HTML patterns:
-```html
-<div class="box">
-    <span class="eiga-title">Movie Title</span>
-    <span class="title-s">Special Feature Title</span>
-    <p class="stuff">Production info and cast</p>
-    <p class="note">Synopsis</p>
-    <p class="day">Screening schedule</p>
-    <p class="price">Pricing</p>
-    <p class="syo">Awards</p>
-    <p class="p3">Event information</p>
-</div>
+# Scrape specific theater
+python run_scraping.py ks_cinema
 ```
 
-### Compatibility Status
-- ✅ **下高井戸シネマ (Shimotakaido Cinema)**: Full compatibility - 65+ movies extracted
-- ⚠️ **ポレポレ東中野**: Partial compatibility - different structure
-- ⚠️ **ユーロスペース**: Requires custom parsing
-- ⚠️ **早稲田松竹**: Non-standard HTML structure
-- ❌ **Other cinemas**: Require custom scrapers
+**Architecture:**
+- `BaseScraper`: Abstract base class with common HTTP/Selenium functionality
+- Theater-specific scrapers inherit from `BaseScraper`
+- `TheaterScrapingOrchestrator`: Manages all scrapers and data collection
+- Data models: `MovieInfo`, `TheaterInfo`, `ShowtimeInfo`, `MovieSchedule`, `TheaterData`
 
-### Special Features Support
-- **Regular movies**: Standard `span.eiga-title` extraction
-- **Special screenings**: `span.title-s` with nested `details` elements
-- **Retrospective series**: Handles grouped movie collections
-- **Error handling**: Robust parsing with fallback mechanisms
+### 2. Discord Bot System
 
-## Core Functions Reference
+**Main Execution:**
+```bash
+# Run combined Discord bot
+python run_discord_bot.py
+```
 
-### Notebook Functions (notebook/test.ipynb)
+**Features:**
+- **Weekly Notifications**: Every Monday 7:30 AM with current/upcoming movies
+- **Interactive Queries**: Movie search, theater schedules, director works
+- **Playwright Integration**: Enhanced external movie information search
+- **Multi-channel Support**: Main notifications and detailed Q&A channels
+
+**Bot Commands:**
+- `!help` - Display help information
+- `!status` - Show bot status and configuration
+- `!update` - Manual data refresh
+
+## Discord Bot Setup
+
+### Environment Variables Required
+```bash
+# Discord Configuration
+DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_MAIN_CHANNEL_NAME=weekly-movies
+DISCORD_DETAIL_CHANNEL_NAME=movie-questions
+
+# Optional Settings
+ENABLE_PLAYWRIGHT_SEARCH=true
+WEEKLY_REPORT_TIME=MON 07:30
+TIMEZONE=Asia/Tokyo
+```
+
+### Bot Permissions Required
+- Send Messages
+- Use Slash Commands
+- Embed Links
+- Read Message History
+- Add Reactions
+
+For detailed setup instructions, see `docs/DISCORD_BOT_SETUP_GUIDE.md`.
+
+## Data Models
+
+### Core Data Structures
 ```python
-# Main scraping function (URL-based)
-scrape_movie_info(url: str) -> pandas.DataFrame
+@dataclass
+class MovieInfo:
+    title: str
+    director: Optional[str] = None
+    cast: List[str] = field(default_factory=list)
+    genre: Optional[str] = None
+    duration: Optional[int] = None
+    synopsis: Optional[str] = None
+    poster_url: Optional[str] = None
 
-# HTML file processing
-process_html_file(file_path: str) -> pandas.DataFrame
+@dataclass
+class TheaterInfo:
+    name: str
+    url: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
 
-# Individual movie data extraction
-process_movie_box(box, is_special=False, special_title=None) -> dict
-
-# Text cleaning utility
-clean_text(text: str) -> str
-
-# Google Sheets upload
-upload_to_sheets(df, credentials_path, spreadsheet_name) -> str
+@dataclass
+class ShowtimeInfo:
+    date: str  # YYYY-MM-DD format
+    times: List[str]  # ["14:30", "19:00"]
+    screen: Optional[str] = None
+    ticket_url: Optional[str] = None
 ```
 
-### Script Functions
-All standalone scripts share the same core functions:
-- `scrape_html_file(file_path)`: Process local HTML file
-- `process_movie_box()`: Extract movie data from HTML elements
-- `clean_text()`: Normalize Japanese text and whitespace
+## Supported Theaters
 
-## Google Sheets Integration
+| Theater | Status | Features |
+|---------|--------|----------|
+| ケイズシネマ (Ks Cinema) | ✅ Full Support | Movies, schedules, theater info |
+| ポレポレ東中野 (Pole Pole) | ✅ Full Support | Movies, schedules, theater info |
+| ユーロスペース (Eurospace) | ✅ Full Support | Movies, schedules, theater info |
+| 下高井戸シネマ (Shimotakaido) | ✅ Full Support | Movies, schedules, theater info |
+| 早稲田松竹 (Waseda Shochiku) | ✅ Full Support | Movies, schedules, theater info |
+| 新宿武蔵野館 (Shinjuku Musashino) | ✅ Full Support | Movies, schedules, theater info |
 
-### Setup Requirements
-1. **Google Cloud Console**: Enable Sheets API and Drive API
-2. **Service Account**: Create and download JSON credentials
-3. **Dependencies**: Install `gspread` and `oauth2client`
+## Discord Bot Usage Examples
 
-### Usage Example
-```python
-# Upload scraped data to Google Sheets
-credentials_path = "path/to/service-account-key.json"
-spreadsheet_name = "Cinema Movie Database"
-url = upload_to_sheets(df, credentials_path, spreadsheet_name)
-print(f"Data uploaded: {url}")
+### Weekly Notifications
+Automatically sent every Monday 7:30 AM:
+```
+🎬 【今週・来週の上映映画】7/8〜7/14
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎭 『映画タイトル』
+📍 上映館: ケイズシネマ, ポレポレ東中野
+📅 期間: 7/8(月)〜7/14(日)
+💭 あらすじ...
+
+📊 合計: 25作品 | 6映画館
+🤖 詳細情報は #映画-質問 で質問してください
 ```
 
-### Features
-- **Auto-creation**: Creates spreadsheet if it doesn't exist
-- **Date-stamped sheets**: New worksheet for each scraping session
-- **Column auto-resize**: Optimizes display formatting
-- **Error handling**: Graceful failure with detailed error messages
+### Interactive Queries
+In the `#movie-questions` channel:
+- **映画情報**: "「映画タイトル」について教えて"
+- **映画館スケジュール**: "ケイズシネマの今週の上映予定は？"
+- **監督作品**: "監督「監督名」の作品を教えて"
 
 ## Development Workflow
 
-### 1. HTML Analysis Phase
+### 1. Adding New Theater Support
 ```bash
-# Analyze new cinema HTML structure
-uv run python html_analyzer.py "html/new_cinema.html" detailed
+# Create new scraper class
+touch src/scraping/scrapers/new_theater_scraper.py
 
-# Check compatibility across all files
-uv run python html_analyzer.py all
+# Implement scraper inheriting from BaseScraper
+class NewTheaterScraper(BaseScraper):
+    def get_movies(self) -> List[MovieInfo]:
+        # Implementation
+    
+    def get_schedules(self) -> List[MovieSchedule]:
+        # Implementation
+
+# Register in main.py orchestrator
 ```
 
-### 2. Script Development
+### 2. Testing and Validation
 ```bash
-# Interactive development in Jupyter
-uv run jupyter notebook notebook/test.ipynb
+# Test specific scraper
+uv run python -c "from src.scraping.scrapers.ks_cinema_scraper import KsCinemaScraper; print('Import OK')"
 
-# Test single file processing
-uv run python scrape_single_html.py "html/test_file.html"
+# Test Discord bot
+uv run python -c "from src.discord_bot.discord_config import load_config; print('Discord OK')"
+
+# Run full system test
+python run_scraping.py all
 ```
 
-### 3. Batch Processing
+### 3. Discord Bot Development
 ```bash
-# Process all compatible files
-uv run python scrape_all_html.py
+# Test bot configuration
+uv run python -c "from src.discord_bot.discord_config import load_config; config = load_config(); print(f'Config loaded: {bool(config[0].token)}')"
 
-# Advanced batch with custom options
-uv run python batch_scraper.py html/*.html --combine --verbose
+# Run bot locally for testing
+python run_discord_bot.py
 ```
 
-### 4. Data Validation
-- Check CSV output in `data/` directory
-- Verify Japanese text encoding (UTF-8)
-- Validate extracted movie counts
-- Review sample data output
+## Error Handling and Logging
 
-## Testing and Quality Assurance
+### Logging Configuration
+- All components use Python's `logging` module
+- Logs written to `logs/` directory
+- Discord bot logs include user interactions and errors
+- Scraping logs include HTTP errors and parsing issues
 
-### Sample Data
-- **HTML files**: Representative samples in `html/` directory
-- **Expected output**: Known good CSV files in `data/` directory
-- **Edge cases**: Special features, multi-day screenings, award information
+### Common Issues and Solutions
 
-### Validation Checklist
-- [ ] Japanese text properly encoded (UTF-8)
-- [ ] Movie titles extracted correctly
-- [ ] Screening schedules formatted properly
-- [ ] Special feature grouping works
-- [ ] Error handling doesn't crash on malformed HTML
-- [ ] CSV output opens correctly in Excel/Sheets
+**Import Errors:**
+- Ensure all imports use relative paths within src/ modules
+- Check that `__init__.py` files exist in all package directories
 
-## Common Issues and Solutions
+**Discord Bot Issues:**
+- Verify bot token and permissions
+- Check channel names match configuration
+- Review Discord API rate limits
 
-### HTML Parsing Issues
-**Problem**: New cinema websites with different HTML structure
-**Solution**: Use `html_analyzer.py` to identify structure, then create custom parser
+**Scraping Failures:**
+- Check internet connectivity and target site availability
+- Review site structure changes requiring scraper updates
+- Verify Selenium WebDriver installation
 
-### Japanese Text Encoding
-**Problem**: Garbled Japanese characters in output
-**Solution**: Ensure all file operations use `encoding="utf-8"`
+## Deployment
 
-### Google Sheets Authentication
-**Problem**: Authentication errors with Google Sheets API
-**Solution**: Verify service account JSON file path and API permissions
+### Local Development
+```bash
+# Install dependencies
+uv sync
 
-### Performance with Large Files
-**Problem**: Memory issues with large HTML files
-**Solution**: Use batch processing with `batch_scraper.py` instead of processing all at once
+# Run scraping system
+python run_scraping.py all
 
-## Documentation References
+# Run Discord bot
+python run_discord_bot.py
+```
 
-- **`doc/manual.md`**: Complete setup and configuration guide
-- **`doc/scraping_scripts.md`**: Japanese documentation with usage examples
-- **Source code**: Inline documentation in all Python files
-- **Jupyter notebook**: Interactive examples and development notes
+### Production Deployment
+- Set environment variables in `.env` file
+- Configure systemd service for continuous Discord bot operation
+- Set up cron job for periodic data updates
+- Monitor system resources and implement temperature-based shutdown for mini PC deployments
+
+## Extension Points
+
+### Adding New Data Sources
+1. Create scraper class inheriting from `BaseScraper`
+2. Implement required abstract methods
+3. Register in `TheaterScrapingOrchestrator`
+4. Add theater info to supported theaters list
+
+### Discord Bot Features
+1. Add new query patterns to `MovieQueryParser`
+2. Implement corresponding handlers in `InteractiveBot`
+3. Create embed templates for new response types
+4. Test with Discord bot commands
+
+This system provides a solid foundation for Japanese cinema data collection and Discord-based user interaction, with clear extension points for adding new theaters and features.
