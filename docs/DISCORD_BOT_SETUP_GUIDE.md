@@ -255,19 +255,24 @@ cd /home/ubuntu/scraping_theatre
 ls -la
 ```
 
-**確認すべきファイル：**
+**確認すべきファイル・ディレクトリ：**
 ```
-drwxr-xr-x  ubuntu ubuntu    .env.example
--rw-r--r--  ubuntu ubuntu    discord_bot_main.py
--rw-r--r--  ubuntu ubuntu    run_discord_bot.py
--rw-r--r--  ubuntu ubuntu    requirements.txt
+drwxr-xr-x  ubuntu ubuntu    config/           # 設定ファイル(.env.example)
+drwxr-xr-x  ubuntu ubuntu    src/              # メインソースコード
+drwxr-xr-x  ubuntu ubuntu    docs/             # ドキュメント
+drwxr-xr-x  ubuntu ubuntu    data/             # データ出力先
+drwxr-xr-x  ubuntu ubuntu    logs/             # ログファイル
+-rw-r--r--  ubuntu ubuntu    run_discord_bot.py   # Discord Bot実行スクリプト
+-rw-r--r--  ubuntu ubuntu    run_scraping.py     # スクレイピング実行スクリプト
+-rw-r--r--  ubuntu ubuntu    pyproject.toml      # Python設定とパッケージ管理
+-rw-r--r--  ubuntu ubuntu    uv.lock             # 依存関係ロックファイル
 ```
 
 ### **Step 4-2: 環境変数ファイルの作成**
 
 1. **テンプレートファイルのコピー**
    ```bash
-   cp .env.example .env
+   cp config/.env.example .env
    ```
 
 2. **権限設定**
@@ -334,22 +339,22 @@ drwxr-xr-x  ubuntu ubuntu    .env.example
 
 ### **Step 4-4: 依存関係のインストール**
 
-1. **Python仮想環境の作成（推奨）**
+1. **uvのインストール（未インストールの場合）**
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   source $HOME/.cargo/env
    ```
 
-2. **依存パッケージのインストール**
+2. **プロジェクト依存関係のインストール**
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
 
 3. **インストール確認**
    ```bash
-   pip list | grep discord
+   uv run python -c "import discord; print(f'discord.py {discord.__version__}')"
    ```
-   結果例：`discord.py    2.3.2`
+   結果例：`discord.py 2.3.2`
 
 ## 🧪 **Phase 5: 動作テストと検証**
 
@@ -357,7 +362,7 @@ drwxr-xr-x  ubuntu ubuntu    .env.example
 
 1. **テスト起動実行**
    ```bash
-   python run_discord_bot.py
+   uv run python run_discord_bot.py
    ```
 
 2. **起動ログの確認**
@@ -490,8 +495,8 @@ drwxr-xr-x  ubuntu ubuntu    .env.example
    User=ubuntu
    Group=ubuntu
    WorkingDirectory=/home/ubuntu/scraping_theatre
-   Environment=PATH=/home/ubuntu/scraping_theatre/venv/bin
-   ExecStart=/home/ubuntu/scraping_theatre/venv/bin/python run_discord_bot.py
+   Environment=PATH=/home/ubuntu/.cargo/bin:/usr/local/bin:/usr/bin:/bin
+   ExecStart=/home/ubuntu/.cargo/bin/uv run python run_discord_bot.py
    Restart=always
    RestartSec=10
    StandardOutput=journal
@@ -575,7 +580,7 @@ drwxr-xr-x  ubuntu ubuntu    .env.example
    ```python
    #!/usr/bin/env python3
    import asyncio
-   from discord_bot_main import CombinedMovieBot
+   from src.discord_bot.discord_bot_main import CombinedMovieBot
    
    async def test_weekly_report():
        bot = CombinedMovieBot()
@@ -589,7 +594,7 @@ drwxr-xr-x  ubuntu ubuntu    .env.example
 
 3. **テスト実行**
    ```bash
-   python test_weekly_report.py
+   uv run python test_weekly_report.py
    ```
 
 4. **結果確認**
