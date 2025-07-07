@@ -1,0 +1,106 @@
+{
+  "ks_cinema": {
+    "theater_info": {
+      "name": "ケイズシネマ",
+      "url": "https://www.ks-cinema.com",
+      "address": "〒160-0022 東京都新宿区新宿3丁目35-13 3F TEL:03-3352-2471FAX:03-3352-2472",
+      "phone": "",
+      "access": "",
+      "screens": 1
+    },
+    "movies": [
+      {
+        "title": "それでも私は Though I’m His Daughter",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/05/main_RGB-e1746262313260-55x36.jpg"
+      },
+      {
+        "title": "星より静かに",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/04/main1-e1743749612254-55x36.jpg"
+      }
+    ],
+    "schedules": [
+      {
+        "theater_name": "ケイズシネマ",
+        "movie_title": "それでも私は Though I’m His Daughter",
+        "showtimes": [
+          {
+            "date": "2025-07-07",
+            "times": [
+              "10:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "ケイズシネマ",
+        "movie_title": "星より静かに",
+        "showtimes": [
+          {
+            "date": "2025-07-07",
+            "times": [
+              "19:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      }
+    ],
+    "scraped_at": "2025-07-07T09:43:31.254657"
+  },
+  "pole_pole": {
+    "theater_info": {
+      "name": "ポレポレ東中野",
+      "url": "https://pole2.co.jp",
+      "address": "東京都中野区東中野4-4-1 ポレポレ坐ビル地下",
+      "phone": "03-3371-0088",
+      "access": "JR中央線・総武線・都営大江戸線東中野駅より徒歩1分",
+      "screens": 2
+    },
+    "movies": [],
+    "schedules": [],
+    "scraped_at": "2025-07-07T09:43:37.058794"
+  },
+  "eurospace": {
+    "theater_info": {
+      "name": "ユーロスペース",
+      "url": "https://www.eurospace.co.jp",
+      "address": "東京都渋谷区円山町1-5 キノハウス地下2階",
+      "phone": "03-3461-0211",
+      "access": "JR渋谷駅より徒歩5分",
+      "screens": 2
+    },
+    "movies": [],
+    "schedules": [],
+    "scraped_at": "2025-07-07T09:43:43.261837"
+  },
+  "shimotakaido": {
+    "theater_info": {
+      "name": "下高井戸シネマ",
+      "url": "https://shimotakaido-cinema.stores.jp",
+      "address": "東京都世田谷区松原3-27-26",
+      "phone": "03-3321-0684",
+      "access": "京王線下高井戸駅より徒歩3分",
+      "screens": 1
+    },
+    "movies": [],
+    "schedules": [],
+    "scraped_at": "2025-07-07T09:44:08.836133"
+  }
+}

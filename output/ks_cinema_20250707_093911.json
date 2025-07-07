@@ -1,0 +1,13 @@
+{
+  "theater_info": {
+    "name": "ケイズシネマ",
+    "url": "https://www.ks-cinema.com",
+    "address": "〒160-0022 東京都新宿区新宿3丁目35-13 3F TEL:03-3352-2471FAX:03-3352-2472",
+    "phone": "",
+    "access": "",
+    "screens": 1
+  },
+  "movies": [],
+  "schedules": [],
+  "scraped_at": "2025-07-07T09:39:11.666803"
+}

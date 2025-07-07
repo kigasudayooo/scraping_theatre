@@ -77,46 +77,52 @@ class KsCinemaScraper(BaseScraper):
         """ページから映画情報抽出"""
         movies = []
         
-        # 映画カード要素を取得
-        movie_cards = soup.find_all("div", class_="movie-card") or soup.find_all("article", class_="movie")
+        # ケイズシネマの実際の構造に合わせて修正
+        movielist = soup.find("div", class_="movielist")
+        if not movielist:
+            return movies
+            
+        # div.box clearfix が個別の映画情報
+        movie_boxes = movielist.find_all("div", class_="box")
         
-        for card in movie_cards:
+        for box in movie_boxes:
             try:
-                # タイトル
-                title_elem = card.find("h2") or card.find("h3") or card.find("div", class_="title")
-                title = self.safe_extract_text(title_elem)
+                # movietxt内のテキストから情報を抽出
+                movietxt = box.find("div", class_="movietxt")
+                if not movietxt:
+                    continue
+                
+                # 全テキストを取得
+                full_text = movietxt.get_text(strip=True)
+                if not full_text:
+                    continue
+                
+                # タイトルを抽出（最初の行から時刻を除外）
+                title_line = full_text.split('\n')[0].strip()
+                
+                # 時刻パターンを除去してタイトルを抽出
+                title = re.sub(r'\d{1,2}:\d{2}', '', title_line).strip()
+                
+                # 特殊なケースの処理
+                if '作品案内参照' in title:
+                    # 特別上映などの場合はスキップするか簡略化
+                    continue
                 
                 if not title:
                     continue
-                    
-                # 英語タイトル
-                title_en_elem = card.find("p", class_="title-en")
-                title_en = self.safe_extract_text(title_en_elem)
                 
-                # 監督
-                director_elem = card.find("div", class_="director") or card.find("p", class_="director")
-                director = self.safe_extract_text(director_elem)
+                # 上映時間を抽出
+                times = re.findall(r'\d{1,2}:\d{2}', full_text)
                 
-                # 出演者
-                cast_elem = card.find("div", class_="cast") or card.find("p", class_="cast")
-                cast_text = self.safe_extract_text(cast_elem)
-                cast = [c.strip() for c in cast_text.split(",") if c.strip()] if cast_text else []
-                
-                # 上映時間
-                duration_elem = card.find("div", class_="duration")
+                # 基本的な映画情報を作成
+                title_en = None
+                director = None
+                cast = []
                 duration = None
-                if duration_elem:
-                    duration_text = self.safe_extract_text(duration_elem)
-                    duration_match = re.search(r"(\d+)分", duration_text)
-                    if duration_match:
-                        duration = int(duration_match.group(1))
-                        
-                # あらすじ
-                synopsis_elem = card.find("div", class_="synopsis") or card.find("p", class_="description")
-                synopsis = self.safe_extract_text(synopsis_elem)
+                synopsis = None
                 
                 # ポスター画像
-                poster_elem = card.find("img")
+                poster_elem = box.find("img")
                 poster_url = ""
                 if poster_elem:
                     poster_url = self.safe_extract_attr(poster_elem, "src")
@@ -143,46 +149,55 @@ class KsCinemaScraper(BaseScraper):
         """スケジュール情報取得"""
         schedules = []
         
-        soup = self.get_page(self.schedule_url)
+        # メインページから情報を取得（ケイズシネマはメインページにスケジュールがある）
+        soup = self.get_page(self.base_url)
         if not soup:
             return schedules
-            
-        # スケジュール情報を抽出
-        schedule_sections = soup.find_all("div", class_="schedule-section") or soup.find_all("section", class_="movie-schedule")
         
-        for section in schedule_sections:
+        movielist = soup.find("div", class_="movielist")
+        if not movielist:
+            return schedules
+            
+        # div.box clearfix からスケジュール情報を抽出
+        movie_boxes = movielist.find_all("div", class_="box")
+        
+        for box in movie_boxes:
             try:
-                # 映画タイトル
-                title_elem = section.find("h3") or section.find("h2")
-                movie_title = self.safe_extract_text(title_elem)
+                # movietxt内のテキストから情報を抽出
+                movietxt = box.find("div", class_="movietxt")
+                if not movietxt:
+                    continue
+                
+                # 全テキストを取得
+                full_text = movietxt.get_text(strip=True)
+                if not full_text:
+                    continue
+                
+                # タイトルを抽出
+                title_line = full_text.split('\n')[0].strip()
+                movie_title = re.sub(r'\d{1,2}:\d{2}', '', title_line).strip()
+                
+                # 特殊なケースをスキップ
+                if '作品案内参照' in movie_title:
+                    continue
                 
                 if not movie_title:
                     continue
-                    
-                # 上映時間情報
-                showtimes = []
-                date_blocks = section.find_all("div", class_="date-block") or section.find_all("tr")
                 
-                for date_block in date_blocks:
-                    # 日付
-                    date_elem = date_block.find("div", class_="date") or date_block.find("td", class_="date")
-                    date_text = self.safe_extract_text(date_elem)
+                # 上映時間を抽出
+                times = re.findall(r'\d{1,2}:\d{2}', full_text)
+                
+                if times:
+                    # 今日の日付でスケジュール作成（実際のサイトでは日付情報が限定的）
+                    from datetime import datetime
+                    today = datetime.now().strftime("%Y-%m-%d")
                     
-                    # 時刻
-                    time_elems = date_block.find_all("span", class_="time") or date_block.find_all("td", class_="time")
-                    times = [self.safe_extract_text(elem) for elem in time_elems if self.safe_extract_text(elem)]
+                    showtimes = [ShowtimeInfo(
+                        date=today,
+                        times=times,
+                        screen="スクリーン1"
+                    )]
                     
-                    if date_text and times:
-                        # 日付フォーマット変換
-                        formatted_date = self._format_date(date_text)
-                        
-                        showtimes.append(ShowtimeInfo(
-                            date=formatted_date,
-                            times=times,
-                            screen="スクリーン1"
-                        ))
-                        
-                if showtimes:
                     schedules.append(MovieSchedule(
                         theater_name=self.theater_name,
                         movie_title=movie_title,
