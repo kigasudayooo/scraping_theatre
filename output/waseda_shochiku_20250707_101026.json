@@ -1,0 +1,194 @@
+{
+  "theater_info": {
+    "name": "早稲田松竹",
+    "url": "http://wasedashochiku.co.jp",
+    "address": "東京都新宿区高田馬場1-5-16",
+    "phone": "03-3200-8968",
+    "access": "JR山手線・西武新宿線・東西線高田馬場駅より徒歩3分",
+    "screens": 1
+  },
+  "movies": [
+    {
+      "title": "★【今後の上映スケジュール一覧】はこちらからご確認いただけます。",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "上映スケジュール",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "早稲田松竹について",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "アクセス",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "お知らせ",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "過去の上映作品",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "よくある質問",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "Copyright © WASEDASHOCHIKU ALLRIGHTS RESERVED.",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "惑星ソラリス",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    },
+    {
+      "title": "ラ・ジュテ",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": null
+    }
+  ],
+  "schedules": [
+    {
+      "theater_name": "早稲田松竹",
+      "movie_title": "惑星ソラリス",
+      "showtimes": [
+        {
+          "date": "2025-07-05",
+          "times": [
+            "10:40",
+            "16:15",
+            "13:50",
+            "19:25",
+            "21:30",
+            "12:25",
+            "17:20",
+            "10:00"
+          ],
+          "screen": "スクリーン1",
+          "ticket_url": null
+        }
+      ]
+    },
+    {
+      "theater_name": "早稲田松竹",
+      "movie_title": "ラ・ジュテ",
+      "showtimes": [
+        {
+          "date": "2025-07-05",
+          "times": [
+            "10:40",
+            "16:15",
+            "13:50",
+            "19:25",
+            "21:30",
+            "12:25",
+            "17:20",
+            "10:00",
+            "14:55",
+            "19:50",
+            "22:00"
+          ],
+          "screen": "スクリーン1",
+          "ticket_url": null
+        }
+      ]
+    },
+    {
+      "theater_name": "早稲田松竹",
+      "movie_title": "ジュ・テーム、ジュ・テーム",
+      "showtimes": [
+        {
+          "date": "2025-07-05",
+          "times": [
+            "10:40",
+            "16:15",
+            "13:50",
+            "19:25",
+            "21:30",
+            "12:25",
+            "17:20",
+            "10:00",
+            "14:55",
+            "19:50",
+            "22:00"
+          ],
+          "screen": "スクリーン1",
+          "ticket_url": null
+        }
+      ]
+    }
+  ],
+  "scraped_at": "2025-07-07T10:10:26.963648"
+}

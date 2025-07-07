@@ -1,0 +1,44 @@
+{
+  "scraping_summary": {
+    "total_theaters": 6,
+    "scraped_at": "2025-07-07T10:10:33.939446",
+    "theaters": {
+      "ks_cinema": {
+        "theater_name": "ケイズシネマ",
+        "total_movies": 2,
+        "total_schedules": 2,
+        "success": true
+      },
+      "pole_pole": {
+        "theater_name": "ポレポレ東中野",
+        "total_movies": 0,
+        "total_schedules": 0,
+        "success": true
+      },
+      "eurospace": {
+        "theater_name": "ユーロスペース",
+        "total_movies": 0,
+        "total_schedules": 0,
+        "success": true
+      },
+      "shimotakaido": {
+        "theater_name": "下高井戸シネマ",
+        "total_movies": 9,
+        "total_schedules": 5,
+        "success": true
+      },
+      "waseda_shochiku": {
+        "theater_name": "早稲田松竹",
+        "total_movies": 10,
+        "total_schedules": 3,
+        "success": true
+      },
+      "shinjuku_musashino": {
+        "theater_name": "新宿武蔵野館",
+        "total_movies": 15,
+        "total_schedules": 0,
+        "success": true
+      }
+    }
+  }
+}

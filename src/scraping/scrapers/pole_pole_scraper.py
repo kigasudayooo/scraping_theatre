@@ -65,19 +65,51 @@ class PolePoleHigashinakanoScraper(BaseScraper):
         return movies
         
     def _extract_movies_from_main_page(self, soup: BeautifulSoup) -> List[MovieInfo]:
-        """メインページから映画情報抽出"""
+        """メインページから映画情報抽出（Nuxt.jsレンダリング後）"""
         movies = []
         
-        # 現在上映中の映画セクション
-        current_section = soup.find("section", class_="current-movies") or soup.find("div", class_="movies-current")
+        # Seleniumで取得したページからテキストを解析
+        body_text = soup.get_text()
         
-        if current_section:
-            movie_items = current_section.find_all("div", class_="movie-item") or current_section.find_all("article")
+        # 映画タイトルをテキストから抽出
+        lines = body_text.split('\n')
+        movie_titles = []
+        
+        # スケジュール部分から映画タイトルを抽出
+        in_schedule_section = False
+        for line in lines:
+            line = line.strip()
             
-            for item in movie_items:
-                movie = self._extract_movie_from_element(item)
-                if movie:
-                    movies.append(movie)
+            if '上映スケジュール' in line:
+                in_schedule_section = True
+                continue
+            
+            if in_schedule_section and line:
+                # 日付やその他の情報をスキップして映画タイトルを抽出
+                if not any(keyword in line for keyword in [
+                    '月', '火', '水', '木', '金', '土', '日',
+                    'ポレポレ東中野', '座席表', '購入', '2D', '字幕',
+                    'もっとみる', ':', '〜'
+                ]) and len(line) > 3 and not line.isdigit():
+                    # レーティングや記号を除去
+                    clean_title = re.sub(r'\s*[GR12+]\s*$', '', line)
+                    clean_title = re.sub(r'【.*?】', '', clean_title)
+                    clean_title = clean_title.strip()
+                    
+                    if clean_title and clean_title not in movie_titles:
+                        movie_titles.append(clean_title)
+        
+        # MovieInfoオブジェクトを作成
+        for title in movie_titles:
+            movies.append(MovieInfo(
+                title=title,
+                title_en=None,
+                director=None,
+                cast=[],
+                duration=None,
+                synopsis=None,
+                poster_url=None
+            ))
                     
         return movies
         
@@ -165,70 +197,94 @@ class PolePoleHigashinakanoScraper(BaseScraper):
             return None
             
     def get_schedules(self) -> List[MovieSchedule]:
-        """スケジュール情報取得"""
+        """スケジュール情報取得（テキスト解析）"""
         schedules = []
         
-        # スケジュールページを取得
-        schedule_soup = self.get_page_with_selenium(f"{self.base_url}/schedule")
-        if not schedule_soup:
+        # メインページから取得（スケジュール情報が含まれている）
+        soup = self.get_page_with_selenium(self.base_url)
+        if not soup:
             return schedules
-            
-        # スケジュール情報を抽出
-        schedule_sections = schedule_soup.find_all("div", class_="schedule-item") or schedule_soup.find_all("section", class_="movie-schedule")
         
-        for section in schedule_sections:
-            try:
-                # 映画タイトル
-                title_elem = section.find("h3") or section.find("h2") or section.find("div", class_="movie-title")
-                movie_title = self.safe_extract_text(title_elem)
-                
-                if not movie_title:
-                    continue
-                    
-                # 上映時間情報
-                showtimes = []
-                
-                # 日付ブロック
-                date_sections = section.find_all("div", class_="date-schedule") or section.find_all("div", class_="schedule-day")
-                
-                for date_section in date_sections:
-                    # 日付
-                    date_elem = date_section.find("div", class_="date") or date_section.find("h4")
-                    date_text = self.safe_extract_text(date_elem)
-                    
-                    # 時刻
-                    time_elems = date_section.find_all("span", class_="time") or date_section.find_all("div", class_="showtime")
-                    times = []
-                    
-                    for time_elem in time_elems:
-                        time_text = self.safe_extract_text(time_elem)
-                        if time_text:
-                            times.append(time_text)
-                            
-                    # スクリーン情報
-                    screen_elem = date_section.find("span", class_="screen")
-                    screen = self.safe_extract_text(screen_elem) if screen_elem else "スクリーン1"
-                    
-                    if date_text and times:
-                        formatted_date = self._format_date(date_text)
-                        
-                        showtimes.append(ShowtimeInfo(
-                            date=formatted_date,
-                            times=times,
-                            screen=screen
-                        ))
-                        
-                if showtimes:
+        body_text = soup.get_text()
+        lines = body_text.split('\n')
+        
+        # スケジュール情報をパース
+        current_movie = None
+        current_date = None
+        current_times = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # 日付の検出 (MM/DD形式)
+            date_match = re.match(r'(\d{2})/(\d{2})', line)
+            if date_match:
+                # 前の映画のスケジュールを保存
+                if current_movie and current_times:
                     schedules.append(MovieSchedule(
                         theater_name=self.theater_name,
-                        movie_title=movie_title,
-                        showtimes=showtimes
+                        movie_title=current_movie,
+                        showtimes=[ShowtimeInfo(
+                            date=current_date,
+                            times=current_times,
+                            screen="ポレポレ東中野（地下）"
+                        )]
                     ))
-                    
-            except Exception as e:
-                self.logger.error(f"Error extracting schedule info: {e}")
-                continue
                 
+                # 新しい日付
+                month, day = date_match.groups()
+                current_date = f"2025-{month}-{day}"
+                current_times = []
+                continue
+            
+            # 映画タイトルの検出（特定の除外条件）
+            if (line and 
+                len(line) > 3 and
+                not any(keyword in line for keyword in [
+                    '月', '火', '水', '木', '金', '土', '日',
+                    'ポレポレ東中野', '座席表', '購入', '2D', '字幕',
+                    'もっとみる', ':', '〜', 'バリアフリー'
+                ]) and 
+                not line.isdigit() and
+                not re.match(r'^\d{1,2}:\d{2}', line)):
+                
+                # 前の映画のスケジュールを保存
+                if current_movie and current_times and current_date:
+                    schedules.append(MovieSchedule(
+                        theater_name=self.theater_name,
+                        movie_title=current_movie,
+                        showtimes=[ShowtimeInfo(
+                            date=current_date,
+                            times=current_times,
+                            screen="ポレポレ東中野（地下）"
+                        )]
+                    ))
+                
+                # 新しい映画
+                current_movie = re.sub(r'\s*[GR12+]\s*$', '', line)
+                current_movie = re.sub(r'【.*?】', '', current_movie).strip()
+                current_times = []
+                continue
+            
+            # 時刻の検出
+            time_match = re.match(r'^(\d{1,2}:\d{2})$', line)
+            if time_match and current_movie:
+                current_times.append(time_match.group(1))
+        
+        # 最後の映画のスケジュールを保存
+        if current_movie and current_times and current_date:
+            schedules.append(MovieSchedule(
+                theater_name=self.theater_name,
+                movie_title=current_movie,
+                showtimes=[ShowtimeInfo(
+                    date=current_date,
+                    times=current_times,
+                    screen="ポレポレ東中野（地下）"
+                )]
+            ))
+        
         return schedules
         
     def _format_date(self, date_text: str) -> str:

@@ -1,0 +1,65 @@
+{
+  "theater_info": {
+    "name": "ケイズシネマ",
+    "url": "https://www.ks-cinema.com",
+    "address": "〒160-0022 東京都新宿区新宿3丁目35-13 3F TEL:03-3352-2471FAX:03-3352-2472",
+    "phone": "",
+    "access": "",
+    "screens": 1
+  },
+  "movies": [
+    {
+      "title": "それでも私は Though I’m His Daughter",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/05/main_RGB-e1746262313260-55x36.jpg"
+    },
+    {
+      "title": "星より静かに",
+      "title_en": null,
+      "director": null,
+      "cast": [],
+      "genre": null,
+      "duration": null,
+      "rating": null,
+      "synopsis": null,
+      "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/04/main1-e1743749612254-55x36.jpg"
+    }
+  ],
+  "schedules": [
+    {
+      "theater_name": "ケイズシネマ",
+      "movie_title": "それでも私は Though I’m His Daughter",
+      "showtimes": [
+        {
+          "date": "2025-07-07",
+          "times": [
+            "10:00"
+          ],
+          "screen": "スクリーン1",
+          "ticket_url": null
+        }
+      ]
+    },
+    {
+      "theater_name": "ケイズシネマ",
+      "movie_title": "星より静かに",
+      "showtimes": [
+        {
+          "date": "2025-07-07",
+          "times": [
+            "19:00"
+          ],
+          "screen": "スクリーン1",
+          "ticket_url": null
+        }
+      ]
+    }
+  ],
+  "scraped_at": "2025-07-07T10:09:26.129921"
+}

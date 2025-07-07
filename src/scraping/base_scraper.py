@@ -33,6 +33,24 @@ class BaseScraper(ABC):
         }
         self.session.headers.update(headers)
         
+        # SSL設定の改善
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        self.session.verify = False  # SSL証明書検証を無効化
+        
+        # リトライ設定
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+        
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        
     def get_page(self, url: str, timeout: int = 30) -> Optional[BeautifulSoup]:
         """ページ取得"""
         try:
@@ -51,6 +69,16 @@ class BaseScraper(ABC):
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
         
+        # SSL関連のオプションを追加
+        options.add_argument('--ignore-ssl-errors=yes')
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--ignore-certificate-errors-spki-list')
+        options.add_argument('--ignore-ssl-errors-list')
+        options.add_argument('--allow-running-insecure-content')
+        options.add_argument('--disable-web-security')
+        options.add_argument('--allow-running-insecure-content')
+        options.add_argument('--ignore-urlfetcher-cert-requests')
+        
         try:
             driver = webdriver.Chrome(options=options)
             driver.get(url)
@@ -62,6 +90,10 @@ class BaseScraper(ABC):
             return BeautifulSoup(html, 'html.parser')
         except Exception as e:
             self.logger.error(f"Failed to get page with Selenium {url}: {e}")
+            # SSL エラーの場合、通常のrequestsセッションでも試行
+            if "SSL" in str(e) or "certificate" in str(e).lower():
+                self.logger.info(f"Trying with requests session for {url}")
+                return self.get_page(url)
             return None
             
     def safe_extract_text(self, element, default: str = "") -> str:

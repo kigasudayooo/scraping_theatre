@@ -1,0 +1,13 @@
+{
+  "theater_info": {
+    "name": "ユーロスペース",
+    "url": "https://www.eurospace.co.jp",
+    "address": "東京都渋谷区円山町1-5 キノハウス地下2階",
+    "phone": "03-3461-0211",
+    "access": "JR渋谷駅より徒歩5分",
+    "screens": 2
+  },
+  "movies": [],
+  "schedules": [],
+  "scraped_at": "2025-07-07T10:10:21.055498"
+}
