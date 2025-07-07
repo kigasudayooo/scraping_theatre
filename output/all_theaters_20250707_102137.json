@@ -1,0 +1,650 @@
+{
+  "ks_cinema": {
+    "theater_info": {
+      "name": "ケイズシネマ",
+      "url": "https://www.ks-cinema.com",
+      "address": "〒160-0022 東京都新宿区新宿3丁目35-13 3F TEL:03-3352-2471FAX:03-3352-2472",
+      "phone": "",
+      "access": "",
+      "screens": 1
+    },
+    "movies": [
+      {
+        "title": "それでも私は Though I’m His Daughter",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/05/main_RGB-e1746262313260-55x36.jpg"
+      },
+      {
+        "title": "星より静かに",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": "https://www.ks-cinema.com/wp-content/uploads/2025/04/main1-e1743749612254-55x36.jpg"
+      }
+    ],
+    "schedules": [
+      {
+        "theater_name": "ケイズシネマ",
+        "movie_title": "それでも私は Though I’m His Daughter",
+        "showtimes": [
+          {
+            "date": "2025-07-07",
+            "times": [
+              "10:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "ケイズシネマ",
+        "movie_title": "星より静かに",
+        "showtimes": [
+          {
+            "date": "2025-07-07",
+            "times": [
+              "19:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      }
+    ],
+    "scraped_at": "2025-07-07T10:20:29.672813"
+  },
+  "pole_pole": {
+    "theater_info": {
+      "name": "ポレポレ東中野",
+      "url": "https://pole2.co.jp",
+      "address": "東京都中野区東中野4-4-1 ポレポレ坐ビル地下",
+      "phone": "03-3371-0088",
+      "access": "JR中央線・総武線・都営大江戸線東中野駅より徒歩1分",
+      "screens": 2
+    },
+    "movies": [],
+    "schedules": [],
+    "scraped_at": "2025-07-07T10:20:35.679576"
+  },
+  "eurospace": {
+    "theater_info": {
+      "name": "ユーロスペース",
+      "url": "https://www.eurospace.co.jp",
+      "address": "東京都渋谷区円山町1-5 キノハウス地下2階",
+      "phone": "03-3461-0211",
+      "access": "JR渋谷駅より徒歩5分",
+      "screens": 2
+    },
+    "movies": [],
+    "schedules": [],
+    "scraped_at": "2025-07-07T10:21:24.790386"
+  },
+  "shimotakaido": {
+    "theater_info": {
+      "name": "下高井戸シネマ",
+      "url": "http://shimotakaidocinema.com",
+      "address": "東京都世田谷区松原3-27-26",
+      "phone": "03-3321-0684",
+      "access": "京王線下高井戸駅より徒歩3分",
+      "screens": 1
+    },
+    "movies": [
+      {
+        "title": "旅するローマ教皇",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "ドマーニ！愛のことづて",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "シンシン／SING SING",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "カップルズ 4Kレストア版",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "『BAUS 映画から船出した映画館』",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "『ハッピー☆エンド』",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "『オリヴェイラ2025』",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "© 2024 有限会社 シネマ・アベニュー.",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "井口奈己監督特集",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      }
+    ],
+    "schedules": [
+      {
+        "theater_name": "下高井戸シネマ",
+        "movie_title": "旅するローマ教皇",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "9:30"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "下高井戸シネマ",
+        "movie_title": "ドマーニ！愛のことづて",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "11:15"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "下高井戸シネマ",
+        "movie_title": "シンシン／SING SING",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "13:55"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "下高井戸シネマ",
+        "movie_title": "カップルズ 4Kレストア版",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "15:40"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "下高井戸シネマ",
+        "movie_title": "井口奈己監督特集",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "18:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      }
+    ],
+    "scraped_at": "2025-07-07T10:21:27.138083"
+  },
+  "waseda_shochiku": {
+    "theater_info": {
+      "name": "早稲田松竹",
+      "url": "http://wasedashochiku.co.jp",
+      "address": "東京都新宿区高田馬場1-5-16",
+      "phone": "03-3200-8968",
+      "access": "JR山手線・西武新宿線・東西線高田馬場駅より徒歩3分",
+      "screens": 1
+    },
+    "movies": [
+      {
+        "title": "★【今後の上映スケジュール一覧】はこちらからご確認いただけます。",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "上映スケジュール",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "早稲田松竹について",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "アクセス",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "お知らせ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "過去の上映作品",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "よくある質問",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "Copyright © WASEDASHOCHIKU ALLRIGHTS RESERVED.",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "惑星ソラリス",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "ラ・ジュテ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      }
+    ],
+    "schedules": [
+      {
+        "theater_name": "早稲田松竹",
+        "movie_title": "惑星ソラリス",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "10:40",
+              "16:15",
+              "13:50",
+              "19:25",
+              "21:30",
+              "12:25",
+              "17:20",
+              "10:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "早稲田松竹",
+        "movie_title": "ラ・ジュテ",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "10:40",
+              "16:15",
+              "13:50",
+              "19:25",
+              "21:30",
+              "12:25",
+              "17:20",
+              "10:00",
+              "14:55",
+              "19:50",
+              "22:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      },
+      {
+        "theater_name": "早稲田松竹",
+        "movie_title": "ジュ・テーム、ジュ・テーム",
+        "showtimes": [
+          {
+            "date": "2025-07-05",
+            "times": [
+              "10:40",
+              "16:15",
+              "13:50",
+              "19:25",
+              "21:30",
+              "12:25",
+              "17:20",
+              "10:00",
+              "14:55",
+              "19:50",
+              "22:00"
+            ],
+            "screen": "スクリーン1",
+            "ticket_url": null
+          }
+        ]
+      }
+    ],
+    "scraped_at": "2025-07-07T10:21:30.634646"
+  },
+  "shinjuku_musashino": {
+    "theater_info": {
+      "name": "新宿武蔵野館",
+      "url": "https://shinjuku.musashino-k.jp",
+      "address": "東京都新宿区新宿3-27-10",
+      "phone": "03-3354-5670",
+      "access": "JR新宿駅東口より徒歩5分",
+      "screens": 2
+    },
+    "movies": [
+      {
+        "title": "「桐島です」",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "恋するリベラーチェ ４Ｋ\r\n１２ヶ月のシネマリレー ２０２４-２０２５",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "ＹＯＵＮＧ＆ＦＩＮＥ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "となりの宇宙人",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "テルマがゆく！９３歳のやさしいリベンジ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "突然、君がいなくなって",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "中山教頭の人生テスト",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "年少日記",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "無名の人生",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "ロボット・ドリームズ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "新宿区ふるさと納税の返礼品に選ばれました！",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "恋するリベラーチェ ４Ｋ １２ヶ月のシネマリレー ２０２４-２０２５",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "YOUNG＆FINE",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "テルマがゆく！ ９３歳のやさしいリベンジ",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      },
+      {
+        "title": "■新宿武蔵野館",
+        "title_en": null,
+        "director": null,
+        "cast": [],
+        "genre": null,
+        "duration": null,
+        "rating": null,
+        "synopsis": null,
+        "poster_url": null
+      }
+    ],
+    "schedules": [],
+    "scraped_at": "2025-07-07T10:21:35.677287"
+  }
+}
