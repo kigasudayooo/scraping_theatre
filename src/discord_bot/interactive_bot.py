@@ -106,9 +106,47 @@ class MovieDataSearcher:
             return None
             
     async def search_theater_schedule(self, theater_name: str) -> List[MovieSearchResult]:
-        """映画館スケジュール検索"""
+        """映画館スケジュール検索（既存データ優先）"""
         try:
-            all_results = self.orchestrator.scrape_all_theaters()
+            # 1. まず既存のデータファイルを使用
+            results = await self._search_from_existing_data(theater_name)
+            
+            if results:
+                self.logger.info(f"Found {len(results)} results from existing data")
+                return results
+            
+            # 2. 既存データで見つからない場合のみPlaywright検索
+            self.logger.info(f"No data found for {theater_name}, trying Playwright search")
+            playwright_results = await self._search_with_playwright(theater_name)
+            
+            return playwright_results or []
+            
+        except Exception as e:
+            self.logger.error(f"Error in theater schedule search: {e}")
+            return []
+    
+    async def _search_from_existing_data(self, theater_name: str) -> List[MovieSearchResult]:
+        """既存データファイルから検索"""
+        try:
+            import json
+            import glob
+            import os
+            
+            # 最新のall_theaters_*.jsonファイルを取得
+            output_dir = "output"
+            if not os.path.exists(output_dir):
+                return []
+                
+            json_files = glob.glob(os.path.join(output_dir, "all_theaters_*.json"))
+            if not json_files:
+                return []
+                
+            latest_file = max(json_files, key=os.path.getctime)
+            self.logger.info(f"Using existing data from: {latest_file}")
+            
+            with open(latest_file, 'r', encoding='utf-8') as f:
+                all_results = json.load(f)
+            
             results = []
             
             for theater_key, result in all_results.items():
@@ -136,13 +174,60 @@ class MovieDataSearcher:
             return results
             
         except Exception as e:
-            self.logger.error(f"Error searching theater schedule: {e}")
+            self.logger.error(f"Error searching from existing data: {e}")
+            return []
+    
+    async def _search_with_playwright(self, search_term: str) -> List[MovieSearchResult]:
+        """Playwrightを使用した検索（フォールバック）"""
+        try:
+            self.logger.info(f"Performing Playwright search for: {search_term}")
+            # TODO: Playwright検索の実装
+            # 今はプレースホルダー
+            return []
+        except Exception as e:
+            self.logger.error(f"Error in Playwright search: {e}")
             return []
             
     async def search_by_director(self, director_name: str) -> List[MovieSearchResult]:
-        """監督名で検索"""
+        """監督名で検索（既存データ優先）"""
         try:
-            all_results = self.orchestrator.scrape_all_theaters()
+            # 1. まず既存データから検索
+            results = await self._search_director_from_existing_data(director_name)
+            
+            if results:
+                self.logger.info(f"Found {len(results)} director results from existing data")
+                return results
+            
+            # 2. 既存データで見つからない場合のみPlaywright検索
+            self.logger.info(f"No data found for director {director_name}, trying Playwright search")
+            playwright_results = await self._search_with_playwright(f"監督 {director_name}")
+            
+            return playwright_results or []
+            
+        except Exception as e:
+            self.logger.error(f"Error in director search: {e}")
+            return []
+    
+    async def _search_director_from_existing_data(self, director_name: str) -> List[MovieSearchResult]:
+        """既存データから監督検索"""
+        try:
+            import json
+            import glob
+            import os
+            
+            output_dir = "output"
+            if not os.path.exists(output_dir):
+                return []
+                
+            json_files = glob.glob(os.path.join(output_dir, "all_theaters_*.json"))
+            if not json_files:
+                return []
+                
+            latest_file = max(json_files, key=os.path.getctime)
+            
+            with open(latest_file, 'r', encoding='utf-8') as f:
+                all_results = json.load(f)
+            
             results = []
             
             for theater_key, result in all_results.items():

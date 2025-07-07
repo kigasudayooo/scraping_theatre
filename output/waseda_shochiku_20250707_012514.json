@@ -1,0 +1,13 @@
+{
+  "theater_info": {
+    "name": "早稲田松竹",
+    "url": "http://wasedashochiku.co.jp",
+    "address": "東京都新宿区高田馬場1-5-16",
+    "phone": "03-3200-8968",
+    "access": "JR山手線・西武新宿線・東西線高田馬場駅より徒歩3分",
+    "screens": 1
+  },
+  "movies": [],
+  "schedules": [],
+  "scraped_at": "2025-07-07T01:25:14.372650"
+}

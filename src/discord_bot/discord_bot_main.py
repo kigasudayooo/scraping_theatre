@@ -39,7 +39,8 @@ class CombinedMovieBot(commands.Bot):
         """Bot起動時のセットアップ"""
         # 週次タスク開始
         self.weekly_report_task.start()
-        self.logger.info("Weekly report task started")
+        self.weekly_scraping_task.start()
+        self.logger.info("Weekly report and scraping tasks started")
         
     async def on_ready(self):
         """Bot準備完了"""
@@ -74,9 +75,37 @@ class CombinedMovieBot(commands.Bot):
         import datetime
         now = datetime.datetime.now()
         
-        # 月曜日の7:30のみ実行
-        if now.weekday() == 0 and now.hour == 7 and now.minute >= 30 and now.minute < 31:
+        # 月曜日の7時台に実行（30分の余裕を持つ）
+        if now.weekday() == 0 and now.hour == 7:
             await self._send_weekly_report()
+    
+    @tasks.loop(hours=1)  # 1時間毎にチェック
+    async def weekly_scraping_task(self):
+        """週次スクレイピングタスク（月曜日6時台に実行）"""
+        import datetime
+        now = datetime.datetime.now()
+        
+        # 月曜日の6時台にスクレイピング実行（レポート送信の1時間前）
+        if now.weekday() == 0 and now.hour == 6:
+            await self._perform_weekly_scraping()
+            
+    async def _perform_weekly_scraping(self):
+        """週次スクレイピング実行"""
+        try:
+            self.logger.info("Starting weekly scraping...")
+            
+            # スクレイピング実行
+            from ..scraping.main import TheaterScrapingOrchestrator
+            orchestrator = TheaterScrapingOrchestrator()
+            results = orchestrator.scrape_all_theaters()
+            
+            if results:
+                self.logger.info("Weekly scraping completed successfully")
+            else:
+                self.logger.warning("Weekly scraping completed but no results")
+                
+        except Exception as e:
+            self.logger.error(f"Error in weekly scraping: {e}")
             
     async def _send_weekly_report(self):
         """週次レポート送信"""

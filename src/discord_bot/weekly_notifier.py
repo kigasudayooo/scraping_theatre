@@ -73,8 +73,11 @@ class WeeklyNotifier:
         try:
             self.logger.info("Starting weekly report generation")
             
-            # データ取得
-            all_results = self.orchestrator.scrape_all_theaters()
+            # データ取得（既存データファイルから）
+            all_results = self._load_latest_theater_data()
+            if not all_results:
+                self.logger.error("No theater data available for weekly report")
+                return
             
             # 週次スケジュール生成
             current_week_start = self._get_monday_of_week(datetime.now().date())
@@ -111,6 +114,33 @@ class WeeklyNotifier:
         days_since_monday = date_obj.weekday()
         monday = date_obj - timedelta(days=days_since_monday)
         return monday
+    
+    def _load_latest_theater_data(self) -> dict:
+        """最新の映画館データファイルを読み込み"""
+        try:
+            import json
+            import glob
+            import os
+            
+            output_dir = "output"
+            if not os.path.exists(output_dir):
+                self.logger.error(f"Output directory {output_dir} not found")
+                return {}
+                
+            json_files = glob.glob(os.path.join(output_dir, "all_theaters_*.json"))
+            if not json_files:
+                self.logger.error("No theater data files found")
+                return {}
+                
+            latest_file = max(json_files, key=os.path.getctime)
+            self.logger.info(f"Using data from: {latest_file}")
+            
+            with open(latest_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+                
+        except Exception as e:
+            self.logger.error(f"Error loading theater data: {e}")
+            return {}
         
     def _convert_result_to_theater_data(self, result: dict):
         """辞書データをTheaterDataオブジェクトに変換"""
