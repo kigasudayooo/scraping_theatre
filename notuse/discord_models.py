@@ -4,10 +4,7 @@ Discord Bot用データモデル
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from scraping.models import MovieInfo, TheaterInfo, ShowtimeInfo
+from ..scraping.models import MovieInfo, TheaterInfo, ShowtimeInfo
 
 @dataclass
 class WeeklyMovieSchedule:

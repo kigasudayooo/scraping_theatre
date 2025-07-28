@@ -25,9 +25,14 @@ class ScheduleConfig:
 class BotConfig:
     """Bot機能設定"""
     enable_playwright_search: bool = True
-    enable_ai_responses: bool = False
+    enable_ai_responses: bool = True  # デフォルトでLLM応答を有効化
     cache_duration_hours: int = 24
     max_search_results: int = 10
+    # LLM設定
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:0.5b"
+    llm_temperature: float = 0.7
+    llm_max_tokens: int = 512
     
 def load_config() -> tuple[DiscordConfig, ScheduleConfig, BotConfig]:
     """設定を環境変数から読み込み"""
@@ -47,9 +52,14 @@ def load_config() -> tuple[DiscordConfig, ScheduleConfig, BotConfig]:
     
     bot_config = BotConfig(
         enable_playwright_search=os.getenv("ENABLE_PLAYWRIGHT_SEARCH", "true").lower() == "true",
-        enable_ai_responses=os.getenv("ENABLE_AI_RESPONSES", "false").lower() == "true",
+        enable_ai_responses=os.getenv("ENABLE_AI_RESPONSES", "true").lower() == "true",
         cache_duration_hours=int(os.getenv("CACHE_DURATION_HOURS", "24")),
-        max_search_results=int(os.getenv("MAX_SEARCH_RESULTS", "10"))
+        max_search_results=int(os.getenv("MAX_SEARCH_RESULTS", "10")),
+        # LLM設定読み込み
+        ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        ollama_model=os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b"),
+        llm_temperature=float(os.getenv("LLM_TEMPERATURE", "0.7")),
+        llm_max_tokens=int(os.getenv("LLM_MAX_TOKENS", "512"))
     )
     
     return discord_config, schedule_config, bot_config

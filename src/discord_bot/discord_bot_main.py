@@ -6,12 +6,18 @@ import logging
 import sys
 import datetime
 from typing import Optional
+from pathlib import Path
 import discord
 from discord.ext import commands, tasks
 
-from .weekly_notifier import WeeklyNotifier
-from .interactive_bot import InteractiveBot, MovieQueryParser, MovieDataSearcher, PlaywrightSearcher
-from .discord_config import load_config
+# Add current directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from weekly_notifier import WeeklyNotifier
+from interactive_bot import InteractiveBot, MovieQueryParser, MovieDataSearcher, PlaywrightSearcher
+from discord_config import load_config
+from llm_responder import LLMResponder
+from ollama_client import OllamaClient
 
 class CombinedMovieBot(commands.Bot):
     """週次通知＋インタラクティブ機能統合Bot"""
@@ -28,6 +34,21 @@ class CombinedMovieBot(commands.Bot):
         self.query_parser = MovieQueryParser()
         self.data_searcher = MovieDataSearcher()
         self.playwright_searcher = PlaywrightSearcher()
+        
+        # LLM応答システム初期化（設定により有効化）
+        if self.bot_config.enable_ai_responses:
+            self.ollama_client = OllamaClient(
+                base_url=self.bot_config.ollama_base_url,
+                model=self.bot_config.ollama_model
+            )
+            self.llm_responder = LLMResponder(
+                ollama_client=self.ollama_client,
+                temperature=self.bot_config.llm_temperature,
+                max_tokens=self.bot_config.llm_max_tokens
+            )
+        else:
+            self.ollama_client = None
+            self.llm_responder = None
         
         self.logger = logging.getLogger(__name__)
         
@@ -90,14 +111,57 @@ class CombinedMovieBot(commands.Bot):
             await self._perform_weekly_scraping()
             
     async def _perform_weekly_scraping(self):
-        """週次スクレイピング実行"""
+        """週次スクレイピング実行（JSON出力対応）"""
         try:
             self.logger.info("Starting weekly scraping...")
             
-            # スクレイピング実行
+            # スクレイピング実行（従来のCSV出力）
             from ..scraping.main import TheaterScrapingOrchestrator
             orchestrator = TheaterScrapingOrchestrator()
             results = orchestrator.scrape_all_theaters()
+            
+            # JSON出力も実行（LLM応答用）
+            if self.bot_config.enable_ai_responses:
+                try:
+                    from ..scraping.json_exporter import CinemaJSONExporter
+                    from ..scraping.scrapers.ks_cinema_scraper import KsCinemaScraper
+                    from ..scraping.scrapers.shimotakaido_scraper import ShimotakaidoScraper
+                    from ..scraping.scrapers.waseda_shochiku_scraper import WasedaShochikuScraper
+                    from ..scraping.scrapers.shinjuku_musashino_scraper import ShinjukuMusashinoScraper
+                    
+                    # アクティブなスクレーパーからデータ取得
+                    theater_data_list = []
+                    scrapers = [
+                        KsCinemaScraper(),
+                        ShimotakaidoScraper(),
+                        WasedaShochikuScraper(),
+                        ShinjukuMusashinoScraper()
+                    ]
+                    
+                    for scraper in scrapers:
+                        try:
+                            theater_data = scraper.get_theater_data()
+                            if theater_data and theater_data.movies:
+                                theater_data_list.append(theater_data)
+                                self.logger.info(f"JSON data collected from {scraper.__class__.__name__}")
+                        except Exception as e:
+                            self.logger.warning(f"Failed to get JSON data from {scraper.__class__.__name__}: {e}")
+                    
+                    # JSON出力
+                    if theater_data_list:
+                        exporter = CinemaJSONExporter()
+                        output_file = exporter.export_cinema_database(theater_data_list)
+                        self.logger.info(f"JSON data exported to {output_file}")
+                        
+                        # データ更新通知送信
+                        await self._send_data_update_notification(
+                            f"映画データを更新しました（{len(theater_data_list)}館、合計{sum(len(td.movies) for td in theater_data_list)}作品）"
+                        )
+                    else:
+                        self.logger.warning("No JSON data to export")
+                        
+                except Exception as e:
+                    self.logger.error(f"JSON export failed: {e}")
             
             if results:
                 self.logger.info("Weekly scraping completed successfully")
@@ -126,6 +190,34 @@ class CombinedMovieBot(commands.Bot):
             
         except Exception as e:
             self.logger.error(f"Error sending weekly report: {e}")
+    
+    async def _send_data_update_notification(self, message: str):
+        """データ更新通知の送信"""
+        try:
+            if not self.main_channel_id:
+                self.logger.warning("Main channel not found for data update notification")
+                return
+                
+            channel = self.get_channel(self.main_channel_id)
+            if not channel:
+                self.logger.error(f"Channel not found for notification: {self.main_channel_id}")
+                return
+            
+            # 簡潔な更新通知を送信
+            embed = discord.Embed(
+                title="🔄 データ更新完了",
+                description=message,
+                color=0x00ff00,
+                timestamp=datetime.datetime.now()
+            )
+            
+            embed.set_footer(text="AI応答システムが最新データを利用できます")
+            
+            await channel.send(embed=embed)
+            self.logger.info(f"Data update notification sent: {message}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send data update notification: {e}")
             
     async def on_message(self, message):
         """メッセージ処理"""
@@ -143,32 +235,80 @@ class CombinedMovieBot(commands.Bot):
         await self.process_commands(message)
         
     async def _handle_movie_query(self, message):
-        """映画質問の処理（InteractiveBotから移植）"""
+        """映画質問の処理（LLM応答対応）"""
         try:
             # 入力中表示
             async with message.channel.typing():
-                # クエリ解析
-                query = self.query_parser.parse_query(message.content)
                 
-                # 検索実行
-                if query.query_type == "movie_info":
-                    await self._handle_movie_info_query(message, query)
-                elif query.query_type == "theater_schedule":
-                    await self._handle_theater_schedule_query(message, query)
-                elif query.query_type == "director_works":
-                    await self._handle_director_works_query(message, query)
+                # LLM応答が有効な場合はLLM応答を使用
+                if self.bot_config.enable_ai_responses and self.llm_responder:
+                    await self._handle_movie_query_with_llm(message)
                 else:
-                    await message.reply(
-                        "申し訳ございませんが、その質問は理解できませんでした。\n\n"
-                        "**使用例:**\n"
-                        "• 「映画タイトル」について教えて\n"
-                        "• ケイズシネマの今週の上映予定は？\n"
-                        "• 監督「山田太郎」の作品を教えて"
-                    )
+                    # 従来の静的応答
+                    await self._handle_movie_query_static(message)
                     
         except Exception as e:
             self.logger.error(f"Error handling query: {e}")
             await message.reply("🚫 エラーが発生しました。しばらくしてからもう一度お試しください。")
+    
+    async def _handle_movie_query_with_llm(self, message):
+        """LLM応答による映画質問処理"""
+        try:
+            user_id = str(message.author.id)
+            channel_info = {
+                "channel_name": message.channel.name,
+                "guild_name": message.guild.name if message.guild else "DM"
+            }
+            
+            # LLM応答生成
+            response = await self.llm_responder.generate_response(
+                user_query=message.content,
+                user_id=user_id,
+                channel_info=channel_info
+            )
+            
+            # 応答送信（長すぎる場合は分割）
+            if len(response) > 2000:  # Discord文字数制限
+                # 応答を分割して送信
+                chunks = [response[i:i+1900] for i in range(0, len(response), 1900)]
+                for i, chunk in enumerate(chunks):
+                    if i == 0:
+                        await message.reply(chunk)
+                    else:
+                        await message.channel.send(chunk)
+            else:
+                await message.reply(response)
+                
+            self.logger.info(f"LLM response sent to {user_id} in {channel_info.get('channel_name', 'unknown')}")
+            
+        except Exception as e:
+            self.logger.error(f"LLM response error: {e}")
+            # LLMエラー時のフォールバック
+            await message.reply(
+                "申し訳ございませんが、AI応答システムでエラーが発生しました。\n"
+                "しばらくしてからもう一度お試しください。"
+            )
+    
+    async def _handle_movie_query_static(self, message):
+        """従来の静的応答による映画質問処理"""
+        # クエリ解析
+        query = self.query_parser.parse_query(message.content)
+        
+        # 検索実行
+        if query.query_type == "movie_info":
+            await self._handle_movie_info_query(message, query)
+        elif query.query_type == "theater_schedule":
+            await self._handle_theater_schedule_query(message, query)
+        elif query.query_type == "director_works":
+            await self._handle_director_works_query(message, query)
+        else:
+            await message.reply(
+                "申し訳ございませんが、その質問は理解できませんでした。\n\n"
+                "**使用例:**\n"
+                "• 「映画タイトル」について教えて\n"
+                "• ケイズシネマの今週の上映予定は？\n"
+                "• 監督「山田太郎」の作品を教えて"
+            )
             
     async def _handle_movie_info_query(self, message, query):
         """映画情報クエリ処理"""
@@ -253,7 +393,7 @@ class CombinedMovieBot(commands.Bot):
         
     @commands.command(name='status', aliases=['s'])
     async def status_command(self, ctx):
-        """ステータスコマンド"""
+        """ステータスコマンド（LLM対応）"""
         embed = discord.Embed(
             title="📊 Bot ステータス",
             color=0x00ff00,
@@ -264,6 +404,23 @@ class CombinedMovieBot(commands.Bot):
         embed.add_field(name="📅 週次通知", value="✅ アクティブ", inline=True)
         embed.add_field(name="💬 質問対応", value="✅ アクティブ", inline=True)
         
+        # LLM応答システムの状態
+        if self.bot_config.enable_ai_responses:
+            if self.llm_responder:
+                embed.add_field(name="🧠 AI応答", value="✅ 有効", inline=True)
+                
+                # Ollama状態確認
+                try:
+                    health = await self.ollama_client.health_check()
+                    ollama_status = "✅ 接続可能" if health else "❌ 接続不可"
+                    embed.add_field(name="🎯 Ollama", value=ollama_status, inline=True)
+                except Exception:
+                    embed.add_field(name="🎯 Ollama", value="❌ エラー", inline=True)
+            else:
+                embed.add_field(name="🧠 AI応答", value="❌ 初期化失敗", inline=True)
+        else:
+            embed.add_field(name="🧠 AI応答", value="⏸️ 無効", inline=True)
+        
         if self.main_channel_id:
             embed.add_field(name="📢 メインチャンネル", value=f"<#{self.main_channel_id}>", inline=True)
         if self.detail_channel_id:
@@ -271,11 +428,19 @@ class CombinedMovieBot(commands.Bot):
             
         embed.add_field(name="🎬 対応映画館", value="6館", inline=True)
         
+        # LLM設定情報（AI応答有効時のみ）
+        if self.bot_config.enable_ai_responses and self.llm_responder:
+            embed.add_field(
+                name="⚙️ AI設定", 
+                value=f"Model: {self.bot_config.ollama_model}\nTemp: {self.bot_config.llm_temperature}", 
+                inline=True
+            )
+        
         await ctx.send(embed=embed)
         
     @commands.command(name='update', aliases=['u'])
     async def manual_update_command(self, ctx):
-        """手動データ更新コマンド"""
+        """手動データ更新コマンド（JSON対応）"""
         await ctx.send("📡 データを更新中...")
         
         try:
@@ -287,13 +452,59 @@ class CombinedMovieBot(commands.Bot):
             success_count = sum(1 for result in results.values() if result)
             total_count = len(results)
             
+            # JSON出力も実行（LLM応答用）
+            json_success = False
+            if self.bot_config.enable_ai_responses:
+                try:
+                    from ..scraping.json_exporter import CinemaJSONExporter
+                    from ..scraping.scrapers.ks_cinema_scraper import KsCinemaScraper
+                    from ..scraping.scrapers.shimotakaido_scraper import ShimotakaidoScraper
+                    from ..scraping.scrapers.waseda_shochiku_scraper import WasedaShochikuScraper
+                    from ..scraping.scrapers.shinjuku_musashino_scraper import ShinjukuMusashinoScraper
+                    
+                    # アクティブなスクレーパーからデータ取得
+                    theater_data_list = []
+                    scrapers = [
+                        KsCinemaScraper(),
+                        ShimotakaidoScraper(),
+                        WasedaShochikuScraper(),
+                        ShinjukuMusashinoScraper()
+                    ]
+                    
+                    for scraper in scrapers:
+                        try:
+                            theater_data = scraper.get_theater_data()
+                            if theater_data and theater_data.movies:
+                                theater_data_list.append(theater_data)
+                        except Exception as e:
+                            self.logger.warning(f"Failed to get JSON data from {scraper.__class__.__name__}: {e}")
+                    
+                    # JSON出力
+                    if theater_data_list:
+                        exporter = CinemaJSONExporter()
+                        output_file = exporter.export_cinema_database(theater_data_list)
+                        json_success = True
+                        self.logger.info(f"JSON data exported to {output_file}")
+                        
+                        # LLM応答システムのデータを強制リロード
+                        if self.llm_responder:
+                            await self.llm_responder.data_searcher.load_movie_data(force_reload=True)
+                            self.logger.info("LLM responder data reloaded")
+                        
+                except Exception as e:
+                    self.logger.error(f"JSON export failed: {e}")
+            
             embed = discord.Embed(
                 title="✅ データ更新完了",
                 color=0x00ff00,
                 timestamp=datetime.datetime.now()
             )
             
-            embed.add_field(name="📊 結果", value=f"{success_count}/{total_count} 映画館のデータを更新", inline=False)
+            embed.add_field(name="📊 CSV出力", value=f"{success_count}/{total_count} 映画館のデータを更新", inline=False)
+            
+            if self.bot_config.enable_ai_responses:
+                json_status = "✅ 成功" if json_success else "❌ 失敗"
+                embed.add_field(name="🤖 JSON出力（AI用）", value=json_status, inline=False)
             
             await ctx.send(embed=embed)
             
