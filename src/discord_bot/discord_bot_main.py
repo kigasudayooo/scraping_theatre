@@ -6,14 +6,18 @@ import logging
 import sys
 import datetime
 from typing import Optional
+from pathlib import Path
 import discord
 from discord.ext import commands, tasks
 
-from .weekly_notifier import WeeklyNotifier
-from .interactive_bot import InteractiveBot, MovieQueryParser, MovieDataSearcher, PlaywrightSearcher
-from .discord_config import load_config
-from .llm_responder import LLMResponder
-from .ollama_client import OllamaClient
+# Add current directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from weekly_notifier import WeeklyNotifier
+from interactive_bot import InteractiveBot, MovieQueryParser, MovieDataSearcher, PlaywrightSearcher
+from discord_config import load_config
+from llm_responder import LLMResponder
+from ollama_client import OllamaClient
 
 class CombinedMovieBot(commands.Bot):
     """週次通知＋インタラクティブ機能統合Bot"""
