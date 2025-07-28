@@ -7,6 +7,8 @@ for integration with the Ollama-powered Discord bot system.
 
 import json
 import logging
+import fcntl
+import tempfile
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime

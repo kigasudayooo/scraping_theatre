@@ -131,10 +131,56 @@ class CinemaDatabase:
         """JSON文字列に変換"""
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
     
-    def save_to_file(self, filepath: str, indent: int = 2) -> None:
-        """JSONファイルに保存"""
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(self.to_dict(), f, ensure_ascii=False, indent=indent)
+    def save_to_file(self, filepath: str, indent: int = 2, use_file_lock: bool = True) -> None:
+        """
+        JSONファイルに保存（ファイルロック対応）
+        
+        Args:
+            filepath: 保存先パス
+            indent: JSONインデント数
+            use_file_lock: ファイルロックを使用するかどうか
+        """
+        if use_file_lock:
+            # ファイルロックを使用した安全な書き込み
+            import tempfile
+            import fcntl
+            from pathlib import Path
+            
+            # 一時ファイルに書き込み後、アトミックに移動
+            output_path = Path(filepath)
+            temp_file = None
+            
+            try:
+                # 一時ファイル作成
+                with tempfile.NamedTemporaryFile(
+                    mode='w', 
+                    encoding='utf-8', 
+                    dir=output_path.parent,
+                    delete=False,
+                    suffix='.tmp',
+                    prefix=f'{output_path.stem}_'
+                ) as temp_file:
+                    
+                    # ファイルロック取得
+                    fcntl.flock(temp_file.fileno(), fcntl.LOCK_EX)
+                    
+                    # JSON書き込み
+                    json.dump(self.to_dict(), temp_file, ensure_ascii=False, indent=indent)
+                    temp_file.flush()
+                
+                # アトミックに移動
+                import os
+                os.rename(temp_file.name, filepath)
+                
+            except Exception as e:
+                # エラー時は一時ファイルを削除
+                if temp_file and Path(temp_file.name).exists():
+                    Path(temp_file.name).unlink()
+                raise e
+        else:
+            # 従来の書き込み方法
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(self.to_dict(), f, ensure_ascii=False, indent=indent)
     
     @classmethod
     def from_theater_data_list(cls, theater_data_list: List[TheaterData]) -> 'CinemaDatabase':

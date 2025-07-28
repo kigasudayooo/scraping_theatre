@@ -148,6 +148,11 @@ class CombinedMovieBot(commands.Bot):
                         exporter = CinemaJSONExporter()
                         output_file = exporter.export_cinema_database(theater_data_list)
                         self.logger.info(f"JSON data exported to {output_file}")
+                        
+                        # データ更新通知送信
+                        await self._send_data_update_notification(
+                            f"映画データを更新しました（{len(theater_data_list)}館、合計{sum(len(td.movies) for td in theater_data_list)}作品）"
+                        )
                     else:
                         self.logger.warning("No JSON data to export")
                         
@@ -181,6 +186,34 @@ class CombinedMovieBot(commands.Bot):
             
         except Exception as e:
             self.logger.error(f"Error sending weekly report: {e}")
+    
+    async def _send_data_update_notification(self, message: str):
+        """データ更新通知の送信"""
+        try:
+            if not self.main_channel_id:
+                self.logger.warning("Main channel not found for data update notification")
+                return
+                
+            channel = self.get_channel(self.main_channel_id)
+            if not channel:
+                self.logger.error(f"Channel not found for notification: {self.main_channel_id}")
+                return
+            
+            # 簡潔な更新通知を送信
+            embed = discord.Embed(
+                title="🔄 データ更新完了",
+                description=message,
+                color=0x00ff00,
+                timestamp=datetime.datetime.now()
+            )
+            
+            embed.set_footer(text="AI応答システムが最新データを利用できます")
+            
+            await channel.send(embed=embed)
+            self.logger.info(f"Data update notification sent: {message}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send data update notification: {e}")
             
     async def on_message(self, message):
         """メッセージ処理"""
@@ -448,6 +481,11 @@ class CombinedMovieBot(commands.Bot):
                         output_file = exporter.export_cinema_database(theater_data_list)
                         json_success = True
                         self.logger.info(f"JSON data exported to {output_file}")
+                        
+                        # LLM応答システムのデータを強制リロード
+                        if self.llm_responder:
+                            await self.llm_responder.data_searcher.load_movie_data(force_reload=True)
+                            self.logger.info("LLM responder data reloaded")
                         
                 except Exception as e:
                     self.logger.error(f"JSON export failed: {e}")
