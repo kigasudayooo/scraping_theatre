@@ -12,9 +12,13 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
 
-from .ollama_client import OllamaClient, OllamaResponse
-from .prompt_templates import PromptBuilder, CinemaPromptTemplates
-from ..scraping.json_exporter import CinemaJSONExporter
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+from ollama_client import OllamaClient, OllamaResponse
+from prompt_templates import PromptBuilder, CinemaPromptTemplates
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from scraping.json_exporter import CinemaJSONExporter
 
 logger = logging.getLogger(__name__)
 

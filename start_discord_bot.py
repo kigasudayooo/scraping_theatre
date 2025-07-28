@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root / "src"))
 
 # Discord Bot関連のモジュールを直接実行
 if __name__ == "__main__":
-    from src.discord_bot.discord_bot_main import CombinedMovieBot
+    from src.discord_bot.simple_discord_bot import SimpleMovieBot
     import asyncio
     import logging
     
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     )
     
     # Discord Bot起動
-    bot = CombinedMovieBot()
+    bot = SimpleMovieBot()
     
     try:
         asyncio.run(bot.run_bot())

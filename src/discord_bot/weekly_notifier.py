@@ -10,16 +10,19 @@ from typing import List, Optional
 import discord
 from discord.ext import commands, tasks
 
-from ..scraping.main import TheaterScrapingOrchestrator
-from .discord_models import WeeklyMovieSchedule, create_weekly_schedule_from_data
-from .discord_config import load_config
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from scraping.json_exporter import scrape_all_theaters_to_json
+from discord_config import load_config
+from discord_models import WeeklyMovieSchedule, create_weekly_schedule_from_data
 
 class WeeklyNotifier:
     """週次通知管理クラス"""
     
     def __init__(self):
         self.discord_config, self.schedule_config, self.bot_config = load_config()
-        self.orchestrator = TheaterScrapingOrchestrator()
+        # スクレイピング機能は json_exporter を使用
         self.logger = logging.getLogger(__name__)
         
         # Discord Bot設定
