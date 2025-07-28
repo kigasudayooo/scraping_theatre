@@ -14,6 +14,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 # プロジェクトパスを追加
+sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from discord_config import load_config
