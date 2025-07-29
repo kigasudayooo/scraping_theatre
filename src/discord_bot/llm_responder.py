@@ -44,6 +44,8 @@ class MovieQueryParser:
                 r'「(.+?)」.*映画.*詳細',
                 r'「(.+?)」.*どんな.*映画',
                 r'(.+?).*映画.*について',
+                r'(.+?)について.*教え.*',  # For movies without quotes
+                r'(.+?).*情報.*教え.*',    # Additional pattern
             ],
             QueryType.THEATER_SCHEDULE: [
                 r'(.+?)(?:の|が).*(?:今週|来週|スケジュール|上映予定|上映時間)',
@@ -132,7 +134,7 @@ class MovieDataSearcher:
     
     async def search_movie_info(self, movie_title: str) -> Optional[Dict[str, Any]]:
         """
-        Search for specific movie information
+        Search for specific movie information with improved matching
         
         Args:
             movie_title: Movie title to search for
@@ -144,25 +146,45 @@ class MovieDataSearcher:
         if not data or 'theaters' not in data:
             return None
         
-        movie_title_lower = movie_title.lower()
+        movie_title_clean = movie_title.strip('「」『』""\'\'').lower()
         
-        # Search through all theaters
+        # Search through all theaters with multiple matching strategies
+        best_match = None
+        exact_match = None
+        
         for theater_id, theater_data in data['theaters'].items():
             movies = theater_data.get('movies', [])
             for movie in movies:
                 title = movie.get('title', '').lower()
-                if movie_title_lower in title or title in movie_title_lower:
-                    # Add theater context
+                title_clean = title.strip('「」『』""\'\'')
+                
+                # Skip entries that look like metadata (starting with ■)
+                if title.startswith('■'):
+                    continue
+                
+                # Exact match (highest priority)
+                if movie_title_clean == title_clean:
                     movie_with_context = movie.copy()
                     movie_with_context['theater_name'] = theater_data.get('name', theater_id)
                     movie_with_context['theater_id'] = theater_id
+                    movie_with_context['theater_url'] = theater_data.get('url', '')
+                    movie_with_context['theater_address'] = theater_data.get('address', '')
                     return movie_with_context
+                
+                # Partial match (fallback)
+                if (movie_title_clean in title_clean or title_clean in movie_title_clean) and len(title_clean) > 3:
+                    if not best_match:
+                        best_match = movie.copy()
+                        best_match['theater_name'] = theater_data.get('name', theater_id)
+                        best_match['theater_id'] = theater_id
+                        best_match['theater_url'] = theater_data.get('url', '')
+                        best_match['theater_address'] = theater_data.get('address', '')
         
-        return None
+        return best_match
     
     async def search_theater_schedule(self, theater_name: str) -> Optional[Dict[str, Any]]:
         """
-        Search for theater schedule information
+        Search for theater schedule information with improved matching
         
         Args:
             theater_name: Theater name to search for
@@ -174,13 +196,21 @@ class MovieDataSearcher:
         if not data or 'theaters' not in data:
             return None
         
-        theater_name_lower = theater_name.lower()
+        theater_name_clean = theater_name.lower().strip()
         
-        # Search through theaters
+        # Try exact and partial matches
         for theater_id, theater_data in data['theaters'].items():
             name = theater_data.get('name', '').lower()
-            if theater_name_lower in name or name in theater_name_lower:
+            
+            # Exact match
+            if theater_name_clean == name:
                 return theater_data
+            
+            # Partial match (both directions)
+            if theater_name_clean in name or name in theater_name_clean:
+                # Additional filtering to avoid false positives
+                if len(theater_name_clean) > 2 and len(name) > 2:
+                    return theater_data
         
         return None
     

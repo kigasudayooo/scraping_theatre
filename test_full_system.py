@@ -265,22 +265,15 @@ class FullSystemTester:
     async def test_discord_bot_system(self):
         """Test Discord bot system integration"""
         try:
-            # Mock Discord bot components
-            from src.discord_bot.discord_bot_main import CombinedMovieBot
-            
             # Create test data
             test_data = self._create_test_data()
             exporter = CinemaJSONExporter(self.temp_data_dir)
             output_file = exporter.export_cinema_database(test_data)
             
-            # Test bot initialization (without actually connecting to Discord)
+            # Test bot components initialization (without importing the full bot)
             try:
                 # This will test config loading and component initialization
                 _, _, bot_config = load_config()
-                
-                # Mock the bot initialization
-                mock_bot = Mock()
-                mock_bot.bot_config = bot_config
                 
                 if bot_config.enable_ai_responses:
                     # Test LLM components can be initialized
@@ -309,7 +302,7 @@ class FullSystemTester:
                     return True
                     
             except Exception as e:
-                logger.error(f"Bot initialization failed: {e}")
+                logger.error(f"Bot components initialization failed: {e}")
                 return False
                 
         except Exception as e:

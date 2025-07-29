@@ -13,7 +13,7 @@ from discord.ext import commands, tasks
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from scraping.json_exporter import scrape_all_theaters_to_json
+from scraping.json_exporter import CinemaJSONExporter
 from discord_config import load_config
 from discord_models import WeeklyMovieSchedule, create_weekly_schedule_from_data
 
