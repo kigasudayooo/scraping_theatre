@@ -97,6 +97,32 @@ class CinemaPromptTemplates:
 質問: {user_query}
 """, required_params=["movie_title", "movie_data", "user_query"])
     
+    # XML-based movie information query
+    MOVIE_INFO_XML = PromptTemplate("""
+映画「{movie_title}」について、以下のXMLデータから正確に回答してください。
+
+{movie_data}
+
+【厳格なルール】
+1. 上記XMLデータに記載された情報のみを使用する
+2. <director>が空なら「監督: 情報なし」と記載
+3. <cast>が空なら「出演: 情報なし」と記載
+4. <synopsis>が空なら「あらすじ: 情報なし」と記載  
+5. <schedules>の内容をそのまま記載（日付・時間・スクリーン）
+6. XMLにない情報は絶対に追加しない
+7. 推測・想像・一般知識での補完は禁止
+
+回答形式:
+- タイトル: <title>の値
+- 監督: <director>の値
+- 出演: <cast>内の<actor>の値
+- あらすじ: <synopsis>の値
+- 上映館: <theater_name>の値
+- 上映スケジュール: <schedules>内の<schedule>情報
+
+質問: {user_query}
+""", required_params=["movie_title", "movie_data", "user_query"])
+    
     # Theater schedule query
     THEATER_SCHEDULE = PromptTemplate("""
 ユーザーから映画館「{theater_name}」のスケジュールについて質問されました。
@@ -224,7 +250,8 @@ class PromptBuilder:
         self, 
         movie_title: str, 
         movie_data: Dict[str, Any], 
-        user_query: str
+        user_query: str,
+        use_xml_format: bool = True
     ) -> str:
         """
         Build movie information prompt
@@ -233,24 +260,34 @@ class PromptBuilder:
             movie_title: Movie title being queried
             movie_data: Relevant movie data
             user_query: Original user question
+            use_xml_format: Whether to use XML format for better LLM understanding
             
         Returns:
             Formatted prompt
         """
-        # Format movie data for display
-        formatted_data = self._format_movie_data(movie_data)
-        
-        return self.templates.MOVIE_INFO.format(
-            movie_title=movie_title,
-            movie_data=formatted_data,
-            user_query=user_query
-        )
+        if use_xml_format:
+            # Use XML format for better LLM understanding
+            formatted_data = self._format_movie_data_xml(movie_data)
+            return self.templates.MOVIE_INFO_XML.format(
+                movie_title=movie_title,
+                movie_data=formatted_data,
+                user_query=user_query
+            )
+        else:
+            # Use original JSON-based format
+            formatted_data = self._format_movie_data(movie_data)
+            return self.templates.MOVIE_INFO.format(
+                movie_title=movie_title,
+                movie_data=formatted_data,
+                user_query=user_query
+            )
     
     def build_theater_schedule_prompt(
         self,
         theater_name: str,
         theater_data: Dict[str, Any],
-        user_query: str
+        user_query: str,
+        use_xml_format: bool = True
     ) -> str:
         """
         Build theater schedule prompt
@@ -259,18 +296,27 @@ class PromptBuilder:
             theater_name: Theater name being queried
             theater_data: Theater schedule data
             user_query: Original user question
+            use_xml_format: Whether to use XML format for better LLM understanding
             
         Returns:
             Formatted prompt
         """
-        # Format theater data for display
-        formatted_data = self._format_theater_data(theater_data)
-        
-        return self.templates.THEATER_SCHEDULE.format(
-            theater_name=theater_name,
-            theater_data=formatted_data,
-            user_query=user_query
-        )
+        if use_xml_format:
+            # Use XML format for better LLM understanding
+            formatted_data = self._format_theater_data_xml(theater_data)
+            return self.templates.THEATER_SCHEDULE_XML.format(
+                theater_name=theater_name,
+                theater_data=formatted_data,
+                user_query=user_query
+            )
+        else:
+            # Use original format
+            formatted_data = self._format_theater_data(theater_data)
+            return self.templates.THEATER_SCHEDULE.format(
+                theater_name=theater_name,
+                theater_data=formatted_data,
+                user_query=user_query
+            )
     
     def build_director_works_prompt(
         self,
@@ -366,6 +412,170 @@ class PromptBuilder:
             available_data=available_data,
             user_query=user_query
         )
+    
+    def _format_theater_data_xml(self, theater_data: Dict[str, Any]) -> str:
+        """Format theater data as XML for better LLM understanding"""
+        if not theater_data:
+            return "<theater_data>劇場データが見つかりませんでした。</theater_data>"
+        
+        xml_parts = ["<theater_data>"]
+        
+        # Basic theater information
+        theater_name = theater_data.get('name', '不明')
+        xml_parts.append(f"  <theater_name>{theater_name}</theater_name>")
+        
+        theater_address = theater_data.get('address', '')
+        xml_parts.append(f"  <theater_address>{theater_address if theater_address else '情報なし'}</theater_address>")
+        
+        theater_url = theater_data.get('url', '')
+        xml_parts.append(f"  <theater_url>{theater_url if theater_url else '情報なし'}</theater_url>")
+        
+        # Movies information
+        movies = theater_data.get('movies', [])
+        if movies:
+            xml_parts.append("  <movies>")
+            
+            from datetime import datetime, date
+            today = date.today()
+            
+            for movie in movies:
+                title = movie.get('title', '不明')
+                
+                # Skip meta information entries
+                if title.startswith('■'):
+                    continue
+                
+                xml_parts.append("    <movie>")
+                xml_parts.append(f"      <title>{title}</title>")
+                
+                director = movie.get('director', '')
+                xml_parts.append(f"      <director>{director if director else '情報なし'}</director>")
+                
+                cast = movie.get('cast', [])
+                if cast:
+                    xml_parts.append("      <cast>")
+                    for actor in cast[:3]:  # First 3 cast members
+                        xml_parts.append(f"        <actor>{actor}</actor>")
+                    xml_parts.append("      </cast>")
+                else:
+                    xml_parts.append("      <cast>情報なし</cast>")
+                
+                # Schedule information
+                schedules = movie.get('schedules', [])
+                if schedules:
+                    xml_parts.append("      <schedules>")
+                    
+                    for schedule in schedules:
+                        schedule_date = schedule.get('date', '')
+                        times = schedule.get('times', [])
+                        screen = schedule.get('screen', '')
+                        
+                        if schedule_date and times:
+                            try:
+                                schedule_date_obj = datetime.strptime(schedule_date, '%Y-%m-%d').date()
+                                if schedule_date_obj >= today:
+                                    xml_parts.append("        <schedule>")
+                                    xml_parts.append(f"          <date>{schedule_date}</date>")
+                                    xml_parts.append(f"          <times>{', '.join(times)}</times>")
+                                    if screen:
+                                        xml_parts.append(f"          <screen>{screen}</screen>")
+                                    xml_parts.append("        </schedule>")
+                            except ValueError:
+                                xml_parts.append("        <schedule>")
+                                xml_parts.append(f"          <date>{schedule_date}</date>")
+                                xml_parts.append(f"          <times>{', '.join(times)}</times>")
+                                if screen:
+                                    xml_parts.append(f"          <screen>{screen}</screen>")
+                                xml_parts.append("        </schedule>")
+                    
+                    xml_parts.append("      </schedules>")
+                else:
+                    xml_parts.append("      <schedules>情報なし</schedules>")
+                
+                xml_parts.append("    </movie>")
+            
+            xml_parts.append("  </movies>")
+        else:
+            xml_parts.append("  <movies>情報なし</movies>")
+        
+        xml_parts.append("</theater_data>")
+        return '\n'.join(xml_parts)
+    
+    def _format_movie_data_xml(self, movie_data: Dict[str, Any]) -> str:
+        """Format movie data as XML for better LLM understanding"""
+        if not movie_data:
+            return "<movie_data>映画データが見つかりませんでした。</movie_data>"
+        
+        xml_parts = ["<movie_data>"]
+        
+        # Basic movie information
+        title = movie_data.get('title', '不明')
+        xml_parts.append(f"  <title>{title}</title>")
+        
+        director = movie_data.get('director', '')
+        xml_parts.append(f"  <director>{director if director else '情報なし'}</director>")
+        
+        cast = movie_data.get('cast', [])
+        if cast:
+            xml_parts.append("  <cast>")
+            for actor in cast[:3]:  # First 3 cast members
+                xml_parts.append(f"    <actor>{actor}</actor>")
+            xml_parts.append("  </cast>")
+        else:
+            xml_parts.append("  <cast>情報なし</cast>")
+        
+        genre = movie_data.get('genre', '')
+        xml_parts.append(f"  <genre>{genre if genre else '情報なし'}</genre>")
+        
+        duration = movie_data.get('duration', '')
+        xml_parts.append(f"  <duration>{duration if duration else '情報なし'}</duration>")
+        
+        synopsis = movie_data.get('synopsis', '')
+        xml_parts.append(f"  <synopsis>{synopsis if synopsis else '情報なし'}</synopsis>")
+        
+        # Theater information
+        theater_name = movie_data.get('theater_name', movie_data.get('theater_id', '不明'))
+        xml_parts.append(f"  <theater_name>{theater_name}</theater_name>")
+        
+        theater_address = movie_data.get('theater_address', '')
+        if theater_address:
+            xml_parts.append(f"  <theater_address>{theater_address}</theater_address>")
+        
+        # Schedule information
+        schedules = movie_data.get('schedules', [])
+        if schedules:
+            xml_parts.append("  <schedules>")
+            from datetime import datetime, date
+            today = date.today()
+            
+            for schedule in schedules:
+                schedule_date = schedule.get('date', '')
+                times = schedule.get('times', [])
+                screen = schedule.get('screen', '')
+                
+                if schedule_date and times:
+                    try:
+                        schedule_date_obj = datetime.strptime(schedule_date, '%Y-%m-%d').date()
+                        if schedule_date_obj >= today:
+                            xml_parts.append(f"    <schedule>")
+                            xml_parts.append(f"      <date>{schedule_date}</date>")
+                            xml_parts.append(f"      <times>{', '.join(times)}</times>")
+                            if screen:
+                                xml_parts.append(f"      <screen>{screen}</screen>")
+                            xml_parts.append(f"    </schedule>")
+                    except ValueError:
+                        xml_parts.append(f"    <schedule>")
+                        xml_parts.append(f"      <date>{schedule_date}</date>")
+                        xml_parts.append(f"      <times>{', '.join(times)}</times>")
+                        if screen:
+                            xml_parts.append(f"      <screen>{screen}</screen>")
+                        xml_parts.append(f"    </schedule>")
+            xml_parts.append("  </schedules>")
+        else:
+            xml_parts.append("  <schedules>情報なし</schedules>")
+        
+        xml_parts.append("</movie_data>")
+        return '\n'.join(xml_parts)
     
     def _format_movie_data(self, movie_data: Dict[str, Any]) -> str:
         """Format movie data for prompt inclusion"""

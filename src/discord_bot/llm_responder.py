@@ -353,11 +353,12 @@ class LLMResponder:
         if not movie_data:
             return f"申し訳ございませんが、映画「{movie_title}」の情報が見つかりませんでした。映画タイトルを正確に入力してください。"
         
-        # Build prompt
+        # Build prompt with XML format to prevent hallucination
         prompt = self.prompt_builder.build_movie_info_prompt(
             movie_title=movie_title,
             movie_data=movie_data,
-            user_query=user_query
+            user_query=user_query,
+            use_xml_format=True  # XML format for better LLM data comprehension
         )
         
         # Generate response
@@ -370,11 +371,12 @@ class LLMResponder:
         if not theater_data:
             return f"申し訳ございませんが、映画館「{theater_name}」の情報が見つかりませんでした。映画館名を正確に入力してください。"
         
-        # Build prompt
+        # Build prompt with XML format to prevent hallucination
         prompt = self.prompt_builder.build_theater_schedule_prompt(
             theater_name=theater_name,
             theater_data=theater_data,
-            user_query=user_query
+            user_query=user_query,
+            use_xml_format=True  # XML format for better LLM data comprehension
         )
         
         # Generate response
