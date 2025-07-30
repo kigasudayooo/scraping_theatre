@@ -8,7 +8,9 @@ import asyncio
 import logging
 import sys
 import os
+import json
 from pathlib import Path
+from datetime import datetime
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -34,14 +36,47 @@ class SimpleMovieBot(commands.Bot):
         # 設定読み込み
         self.discord_config, self.schedule_config, self.bot_config = load_config()
         
+        # ログ設定
+        self.logger = logging.getLogger(__name__)
+        self._setup_conversation_logging()
+        
         # LLM応答システム初期化
         try:
             self.llm_responder = LLMResponder()
-            self.logger = logging.getLogger(__name__)
             self.logger.info("LLM responder initialized successfully")
         except Exception as e:
             self.logger.error(f"Failed to initialize LLM responder: {e}")
             self.llm_responder = None
+    
+    def _setup_conversation_logging(self):
+        """会話ログの設定"""
+        # 会話ログ用のディレクトリ作成
+        self.logs_dir = Path("logs")
+        self.logs_dir.mkdir(exist_ok=True)
+        
+        # 会話ログファイルパス
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.conversation_log_file = self.logs_dir / f"discord_conversations_{today}.jsonl"
+        
+        # 会話ログ用logger
+        self.conversation_logger = logging.getLogger("conversation")
+        handler = logging.FileHandler(self.conversation_log_file, encoding='utf-8')
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(message)s')
+        handler.setFormatter(formatter)
+        self.conversation_logger.addHandler(handler)
+        self.conversation_logger.setLevel(logging.INFO)
+        self.conversation_logger.propagate = False
+    
+    def log_conversation(self, user_message, bot_response, metadata=None):
+        """会話をログに記録"""
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "user_message": user_message,
+            "bot_response": bot_response,
+            "metadata": metadata or {}
+        }
+        self.conversation_logger.info(json.dumps(log_entry, ensure_ascii=False))
             
     async def on_ready(self):
         """Bot準備完了時の処理"""
@@ -107,6 +142,16 @@ class SimpleMovieBot(commands.Bot):
                 user_id=user_id,
                 channel_info=channel_info
             )
+            
+            # 会話をログに記録
+            metadata = {
+                "user_id": user_id,
+                "user_name": message.author.name,
+                "channel_name": message.channel.name,
+                "guild_name": message.guild.name if message.guild else "DM",
+                "response_length": len(response) if response else 0
+            }
+            self.log_conversation(message.content, response, metadata)
             
             if response and response.strip():
                 # 長いメッセージの場合は分割
