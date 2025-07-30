@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# システムパッケージのインストール
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# uvのインストール
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# プロジェクトファイルをコピー
+COPY . .
+
+# 依存関係のインストール
+RUN uv sync
+
+# ログディレクトリの作成
+RUN mkdir -p logs
+
+# 実行権限の付与
+RUN chmod +x scripts/install_scheduler.sh
+
+# ヘルスチェック
+HEALTHCHECK --interval=5m --timeout=10s --start-period=30s \
+  CMD pgrep -f "cinema_scheduler.py" || exit 1
+
+# スケジューラーの実行
+CMD ["uv", "run", "python", "src/scheduler/cinema_scheduler.py"]

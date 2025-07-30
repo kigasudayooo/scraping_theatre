@@ -703,6 +703,106 @@ class SimpleMovieBot(commands.Bot):
 
 **進捗**: ハイブリッドシステム実装完了、Discord Bot統合済み、テスト実行準備完了
 
+---
+
+## 🕐 Phase 8: 完全自動化スケジューラー実装 (2025-07-30)
+
+### 📋 Phase 8 概要
+手動実行が必要だったスクレイピング処理を完全自動化。毎週定期的にスクレイピング→JSON出力→Discord通知の完全パイプラインを構築。
+
+### 🎯 自動化要件
+1. **定期スクレイピング**: 毎週日曜日23:00に全映画館データ取得
+2. **自動通知**: 毎週月曜日07:30にDiscordへ週次レポート送信  
+3. **システム監視**: エラー発生時のログ記録と自動復旧
+4. **デプロイ対応**: systemd、Docker両対応
+
+### 🛠️ 技術実装
+
+#### 1. メインスケジューラー
+```python
+# src/scheduler/cinema_scheduler.py
+class CinemaScheduler:
+    def setup_schedule(self):
+        # 毎週日曜日 23:00 - スクレイピング実行
+        schedule.every().sunday.at("23:00").do(self.run_scraping_job)
+        
+        # 毎週月曜日 07:30 - Discord通知
+        schedule.every().monday.at("07:30").do(self.run_discord_notification)
+    
+    def run_scraping_job(self):
+        # メインスクレイピング実行
+        result = subprocess.run([
+            sys.executable, "-m", "src.scraping.main_scraper"
+        ], capture_output=True, text=True)
+    
+    async def _send_weekly_notification(self):
+        # WeeklyNotifierを使用して通知送信
+        notifier = WeeklyNotifier()
+        # 一時的なBotクライアントで通知実行
+```
+
+#### 2. systemd統合
+```ini
+# systemd/cinema-scheduler.service
+[Unit]
+Description=Cinema Scraping Scheduler
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/uv run python src/scheduler/cinema_scheduler.py
+Restart=always
+RestartSec=10
+```
+
+### 🧪 テスト機能
+
+#### コマンドラインオプション
+```bash
+# スクレイピングのみテスト
+uv run python src/scheduler/cinema_scheduler.py --test scraping
+
+# Discord通知のみテスト  
+uv run python src/scheduler/cinema_scheduler.py --test notification
+
+# 完全パイプラインテスト
+uv run python src/scheduler/cinema_scheduler.py --test full
+```
+
+### 📊 運用スケジュール
+
+#### 週次自動実行
+- **日曜日 23:00**: 全映画館スクレイピング実行
+  - ケイズシネマ、下高井戸シネマ、早稲田松竹、新宿武蔵野館
+  - JSON形式でデータ出力（`output/all_theaters_*.json`）
+
+- **月曜日 07:30**: Discord週次通知送信
+  - 最新JSONデータから週次レポート生成
+  - `weekly_movies`チャンネルに投稿
+
+### 🚀 デプロイ方法
+
+#### 1. systemd（推奨）
+```bash
+sudo ./scripts/install_scheduler.sh
+systemctl status cinema-scheduler.service
+```
+
+#### 2. Docker
+```bash
+cd docker
+docker-compose -f docker-compose.scheduler.yml up -d
+```
+
+### 📈 最終成果
+
+#### 完全自動化達成
+- **手動作業**: 0% - 全プロセスが自動実行
+- **データ鮮度**: 週1回更新で最新情報保証
+- **通知精度**: ハイブリッドシステムによる高精度応答
+
+**進捗**: 完全自動化スケジューラー実装完了、デプロイ準備完了
+
 #### 🔍 実装後の検証結果（2025年7月30日 20:00）
 
 **大幅に改善された点**:

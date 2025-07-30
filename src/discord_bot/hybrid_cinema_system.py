@@ -160,9 +160,18 @@ class ResponseFormatter:
     @staticmethod
     def format_theater_response(theater_data: Dict, theater_name: str) -> str:
         """劇場検索結果を整形"""
-        response = f"■ {theater_name}\n"
+        # 映画館名にリンクを追加
+        theater_url = theater_data.get('url', '')
+        if theater_url and theater_url != '情報なし':
+            response = f"■ [{theater_name}]({theater_url})\n"
+        else:
+            response = f"■ {theater_name}\n"
+        
         response += f"・住所: {theater_data.get('address', '情報なし')}\n"
-        response += f"・URL: {theater_data.get('url', '情報なし')}\n\n"
+        if theater_url and theater_url != '情報なし':
+            response += f"・URL: {theater_url}\n\n"
+        else:
+            response += "\n"
         
         movies = theater_data.get('movies', [])
         response += f"■ 上映中の映画（{len(movies)}本）\n\n"

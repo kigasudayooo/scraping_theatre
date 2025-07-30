@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  cinema-scheduler:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.scheduler
+    container_name: cinema-scheduler
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Tokyo
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - LLM_MODEL=${LLM_MODEL:-llama3.2:3b}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-1024}
+    volumes:
+      - ../logs:/app/logs
+      - ../data:/app/data
+      - ../output:/app/output
+      - ../.env:/app/.env:ro
+    networks:
+      - cinema-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  cinema-network:
+    driver: bridge

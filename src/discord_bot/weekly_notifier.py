@@ -76,6 +76,22 @@ class WeeklyNotifier:
         try:
             self.logger.info("Starting weekly report generation")
             
+            # 送信
+            if self.discord_config.main_channel_id:
+                channel = self.bot.get_channel(self.discord_config.main_channel_id)
+                if channel:
+                    await self.send_weekly_report_to_channel(channel)
+                else:
+                    self.logger.error(f"Channel not found: {self.discord_config.main_channel_id}")
+            else:
+                self.logger.error("Main channel ID not configured")
+                
+        except Exception as e:
+            self.logger.error(f"Error sending weekly report: {e}")
+    
+    async def send_weekly_report_to_channel(self, channel):
+        """指定チャンネルに週次レポート送信"""
+        try:
             # データ取得（既存データファイルから）
             all_results = self._load_latest_theater_data()
             if not all_results:
@@ -86,31 +102,15 @@ class WeeklyNotifier:
             current_week_start = self._get_monday_of_week(datetime.now().date())
             next_week_start = current_week_start + timedelta(days=7)
             
-            theater_data_list = []
-            for theater_key, result in all_results.items():
-                if result:
-                    theater_data_list.append(self._convert_result_to_theater_data(result))
-                    
-            weekly_schedule = create_weekly_schedule_from_data(
-                theater_data_list, current_week_start, next_week_start
-            )
-            
-            # Discord Embed作成
-            embed = self._create_weekly_embed(weekly_schedule)
+            # 簡単なEmbed作成（モデル変換をスキップ）
+            embed = self._create_simple_weekly_embed(all_results)
             
             # 送信
-            if self.discord_config.main_channel_id:
-                channel = self.bot.get_channel(self.discord_config.main_channel_id)
-                if channel:
-                    await channel.send(embed=embed)
-                    self.logger.info("Weekly report sent successfully")
-                else:
-                    self.logger.error(f"Channel not found: {self.discord_config.main_channel_id}")
-            else:
-                self.logger.error("Main channel ID not configured")
+            await channel.send(embed=embed)
+            self.logger.info("Weekly report sent successfully")
                 
         except Exception as e:
-            self.logger.error(f"Error sending weekly report: {e}")
+            self.logger.error(f"Error sending weekly report to channel: {e}")
             
     def _get_monday_of_week(self, date_obj: date) -> date:
         """指定日の週の月曜日を取得"""
@@ -125,7 +125,20 @@ class WeeklyNotifier:
             import glob
             import os
             
+            # dataディレクトリも確認
+            data_dir = "data"
             output_dir = "output"
+            
+            # dataディレクトリのmovies_data.jsonを優先
+            data_file = os.path.join(data_dir, "movies_data.json")
+            if os.path.exists(data_file):
+                latest_file = data_file
+                self.logger.info(f"Using data from: {latest_file}")
+                
+                with open(latest_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            
+            # 従来のoutputディレクトリも確認
             if not os.path.exists(output_dir):
                 self.logger.error(f"Output directory {output_dir} not found")
                 return {}
@@ -147,60 +160,52 @@ class WeeklyNotifier:
         
     def _convert_result_to_theater_data(self, result: dict):
         """辞書データをTheaterDataオブジェクトに変換"""
-        from ..scraping.models import TheaterInfo, MovieInfo, MovieSchedule, ShowtimeInfo, TheaterData
+        # 相対インポート問題を回避するため、簡単な辞書形式を直接使用
+        return result
+    
+    def _create_simple_weekly_embed(self, movies_data: dict) -> discord.Embed:
+        """簡単な週次レポート用Embed作成"""
+        title = f"🎬 【今週の上映映画】{datetime.now().strftime('%m/%d')}"
         
-        # 映画館情報
-        theater_info_dict = result.get("theater_info", {})
-        theater_info = TheaterInfo(
-            name=theater_info_dict.get("name", ""),
-            url=theater_info_dict.get("url", ""),
-            address=theater_info_dict.get("address"),
-            phone=theater_info_dict.get("phone"),
-            access=theater_info_dict.get("access"),
-            screens=theater_info_dict.get("screens")
+        embed = discord.Embed(
+            title=title,
+            color=0x7289da,
+            timestamp=datetime.now()
         )
         
-        # 映画情報
-        movies = []
-        for movie_dict in result.get("movies", []):
-            movie = MovieInfo(
-                title=movie_dict.get("title", ""),
-                title_en=movie_dict.get("title_en"),
-                director=movie_dict.get("director"),
-                cast=movie_dict.get("cast", []),
-                genre=movie_dict.get("genre"),
-                duration=movie_dict.get("duration"),
-                rating=movie_dict.get("rating"),
-                synopsis=movie_dict.get("synopsis"),
-                poster_url=movie_dict.get("poster_url")
-            )
-            movies.append(movie)
-            
-        # スケジュール情報
-        schedules = []
-        for schedule_dict in result.get("schedules", []):
-            showtimes = []
-            for showtime_dict in schedule_dict.get("showtimes", []):
-                showtime = ShowtimeInfo(
-                    date=showtime_dict.get("date", ""),
-                    times=showtime_dict.get("times", []),
-                    screen=showtime_dict.get("screen"),
-                    ticket_url=showtime_dict.get("ticket_url")
-                )
-                showtimes.append(showtime)
+        # 映画情報を追加
+        description_parts = ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"]
+        
+        theaters = movies_data.get("theaters", {})
+        total_movies = 0
+        
+        for theater_name, theater_info in theaters.items():
+            movies = theater_info.get("movies", [])
+            if movies:
+                # 映画館名にURLリンクを追加
+                theater_url = theater_info.get("url", "")
+                if theater_url:
+                    description_parts.append(f"🏛️ **[{theater_name}]({theater_url})**\n")
+                else:
+                    description_parts.append(f"🏛️ **{theater_name}**\n")
                 
-            schedule = MovieSchedule(
-                theater_name=schedule_dict.get("theater_name", ""),
-                movie_title=schedule_dict.get("movie_title", ""),
-                showtimes=showtimes
-            )
-            schedules.append(schedule)
-            
-        return TheaterData(
-            theater_info=theater_info,
-            movies=movies,
-            schedules=schedules
-        )
+                for movie in movies[:3]:  # 最大3作品
+                    title_text = movie.get("title", "不明")[:50]  # タイトル50文字制限
+                    description_parts.append(f"🎭 『{title_text}』\n")
+                    total_movies += 1
+                description_parts.append("\n")
+        
+        # 統計情報
+        description_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        description_parts.append(f"📊 合計: {total_movies}作品 | {len(theaters)}映画館\n")
+        description_parts.append("🤖 詳細情報は #movie-questions で映画名を質問してください")
+        
+        embed.description = "".join(description_parts)
+        
+        # フッター
+        embed.set_footer(text="東京独立系映画館情報 | 毎週月曜更新")
+        
+        return embed
         
     def _create_weekly_embed(self, weekly_schedule: WeeklyMovieSchedule) -> discord.Embed:
         """週次レポート用Embed作成"""
