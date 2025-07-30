@@ -20,7 +20,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from discord_config import load_config
-from llm_responder import LLMResponder
+from hybrid_cinema_system import HybridCinemaSystem
+from ollama_client import OllamaClient
 
 # 環境変数読み込み
 load_dotenv()
@@ -40,13 +41,18 @@ class SimpleMovieBot(commands.Bot):
         self.logger = logging.getLogger(__name__)
         self._setup_conversation_logging()
         
-        # LLM応答システム初期化
+        # ハイブリッド映画システム初期化
         try:
-            self.llm_responder = LLMResponder()
-            self.logger.info("LLM responder initialized successfully")
+            # Ollamaクライアント設定
+            ollama_client = OllamaClient(
+                model="llama3.2:3b",  # 最新のモデル
+                timeout=30
+            )
+            self.cinema_system = HybridCinemaSystem(ollama_client)
+            self.logger.info("Hybrid cinema system initialized successfully")
         except Exception as e:
-            self.logger.error(f"Failed to initialize LLM responder: {e}")
-            self.llm_responder = None
+            self.logger.error(f"Failed to initialize hybrid cinema system: {e}")
+            self.cinema_system = None
     
     def _setup_conversation_logging(self):
         """会話ログの設定"""
@@ -116,9 +122,9 @@ class SimpleMovieBot(commands.Bot):
     async def _handle_movie_query(self, message):
         """映画関連の質問を処理"""
         try:
-            # LLM応答を試行
-            if self.llm_responder and self.bot_config.enable_ai_responses:
-                await self._handle_movie_query_with_llm(message)
+            # ハイブリッドシステム応答を試行
+            if self.cinema_system and self.bot_config.enable_ai_responses:
+                await self._handle_movie_query_with_hybrid(message)
             else:
                 await self._handle_movie_query_fallback(message)
                 
@@ -126,8 +132,8 @@ class SimpleMovieBot(commands.Bot):
             self.logger.error(f"Error handling movie query: {e}")
             await message.reply("申し訳ありません。エラーが発生しました。")
             
-    async def _handle_movie_query_with_llm(self, message):
-        """LLMを使用した映画質問処理"""
+    async def _handle_movie_query_with_hybrid(self, message):
+        """ハイブリッドシステムを使用した映画質問処理"""
         try:
             # ユーザー情報とチャンネル情報を取得
             user_id = str(message.author.id)
@@ -136,12 +142,8 @@ class SimpleMovieBot(commands.Bot):
                 "guild_name": message.guild.name if message.guild else "DM"
             }
             
-            # LLM応答生成
-            response = await self.llm_responder.generate_response(
-                user_query=message.content,
-                user_id=user_id,
-                channel_info=channel_info
-            )
+            # ハイブリッドシステム応答生成
+            response = await self.cinema_system.process_query(message.content)
             
             # 会話をログに記録
             metadata = {
@@ -149,7 +151,8 @@ class SimpleMovieBot(commands.Bot):
                 "user_name": message.author.name,
                 "channel_name": message.channel.name,
                 "guild_name": message.guild.name if message.guild else "DM",
-                "response_length": len(response) if response else 0
+                "response_length": len(response) if response else 0,
+                "system_type": "hybrid_cinema_system"
             }
             self.log_conversation(message.content, response, metadata)
             
@@ -162,12 +165,12 @@ class SimpleMovieBot(commands.Bot):
                 else:
                     await message.reply(response)
                     
-                self.logger.info(f"LLM response sent to user {message.author.name}")
+                self.logger.info(f"Hybrid system response sent to user {message.author.name}")
             else:
                 await self._handle_movie_query_fallback(message)
                 
         except Exception as e:
-            self.logger.error(f"LLM response failed: {e}")
+            self.logger.error(f"Hybrid system response failed: {e}")
             await self._handle_movie_query_fallback(message)
             
     async def _handle_movie_query_fallback(self, message):
@@ -192,12 +195,14 @@ class SimpleMovieBot(commands.Bot):
     @commands.command(name='status')
     async def status(self, ctx):
         """Bot状態確認"""
-        llm_status = "✅ 利用可能" if self.llm_responder else "❌ 利用不可"
+        cinema_status = "✅ 利用可能" if self.cinema_system else "❌ 利用不可"
         status_message = (
             f"**Bot Status**\n"
-            f"LLM応答: {llm_status}\n"
+            f"ハイブリッド映画システム: {cinema_status}\n"
             f"映画館データ: ✅ 35作品対応\n"
-            f"設定されたチャンネル: {len([c for c in [self.discord_config.main_channel_id, self.discord_config.detail_channel_id] if c])}個"
+            f"設定されたチャンネル: {len([c for c in [self.discord_config.main_channel_id, self.discord_config.detail_channel_id] if c])}個\n"
+            f"キーワード抽出: プログラム型 + LLM型フォールバック\n"
+            f"ハルシネーション対策: 完全無効化"
         )
         await ctx.send(status_message)
         
