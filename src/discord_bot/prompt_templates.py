@@ -97,31 +97,44 @@ class CinemaPromptTemplates:
 質問: {user_query}
 """, required_params=["movie_title", "movie_data", "user_query"])
     
-    # XML-based movie information query
+    # XML-based movie information query - ULTRA STRICT VERSION
     MOVIE_INFO_XML = PromptTemplate("""
-映画「{movie_title}」について、以下のXMLデータから正確に回答してください。
+あなたは映画情報を提供するシステムです。
+
+以下のXMLデータのみを使用して回答してください：
 
 {movie_data}
 
-【厳格なルール】
-1. 上記XMLデータに記載された情報のみを使用する
-2. <director>が空なら「監督: 情報なし」と記載
-3. <cast>が空なら「出演: 情報なし」と記載
-4. <synopsis>が空なら「あらすじ: 情報なし」と記載  
-5. <schedules>の内容をそのまま記載（日付・時間・スクリーン）
-6. XMLにない情報は絶対に追加しない
-7. 推測・想像・一般知識での補完は禁止
+【重要：これらのルールを厳守してください】
+- 上記XMLデータ以外の情報は一切使用禁止
+- 知識や推測による情報追加は一切禁止
+- XMLの値を1文字も変更してはいけません
+- 存在しない情報は「情報なし」と記載
 
-回答形式:
-- タイトル: <title>の値
-- 監督: <director>の値
-- 出演: <cast>内の<actor>の値
-- あらすじ: <synopsis>の値
-- 上映館: <theater_name>の値
-- 上映スケジュール: <schedules>内の<schedule>情報
+回答例：
+■ 基本情報
+- タイトル: [XMLの<title>の値をそのまま]
+- 監督: [XMLの<director>の値をそのまま]
+- 出演: [XMLの<cast>の値をそのまま]
+- あらすじ: [XMLの<synopsis>の値をそのまま]
+
+■ 上映情報
+- 上映館: [XMLの<theater_name>の値をそのまま]
+- 上映スケジュール: [XMLの<schedule>の値をそのまま]
+
+上記の形式で、XMLデータのみを使用して回答してください。
 
 質問: {user_query}
 """, required_params=["movie_title", "movie_data", "user_query"])
+    
+    # XML-based theater schedule query - MINIMAL VERSION
+    THEATER_SCHEDULE_XML = PromptTemplate("""
+{theater_data}
+
+上記XMLから映画タイトルを抜き出してリストしてください。
+
+質問: {user_query}
+""", required_params=["theater_name", "theater_data", "user_query"])
     
     # Theater schedule query
     THEATER_SCHEDULE = PromptTemplate("""
@@ -163,22 +176,23 @@ class CinemaPromptTemplates:
 ユーザーの質問: {user_query}
 """, required_params=["director_name", "director_works", "user_query"])
     
-    # General cinema query
+    # General cinema query - ULTRA STRICT VERSION
     GENERAL_CINEMA = PromptTemplate("""
-ユーザーから映画館に関する一般的な質問を受けました。
+あなたは映画館情報提供システムです。
 
-利用可能な映画館データ:
+以下のデータのみを使用して回答してください：
+
 {cinema_data}
 
-質問内容を分析して、最も適切な情報を提供してください。
+【重要：これらのルールを厳守してください】
+- 上記データ以外の情報は一切使用禁止
+- 知識や推測による情報追加は一切禁止
+- データにない映画名や映画館名を創作してはいけません
+- 不明な情報は「情報なし」と記載
 
-回答のポイント:
-- 質問の意図を理解する
-- 関連する映画館や映画情報を提供
-- おすすめがあれば提案する
-- 具体的で実用的な情報を含める
+データに基づいて正確に回答してください。
 
-ユーザーの質問: {user_query}
+質問: {user_query}
 """, required_params=["cinema_data", "user_query"])
     
     # Help and introduction
@@ -473,7 +487,7 @@ class PromptBuilder:
                         if schedule_date and times:
                             try:
                                 schedule_date_obj = datetime.strptime(schedule_date, '%Y-%m-%d').date()
-                                if schedule_date_obj >= today:
+                                if True:  # Show all schedules for debugging
                                     xml_parts.append("        <schedule>")
                                     xml_parts.append(f"          <date>{schedule_date}</date>")
                                     xml_parts.append(f"          <times>{', '.join(times)}</times>")
@@ -556,7 +570,7 @@ class PromptBuilder:
                 if schedule_date and times:
                     try:
                         schedule_date_obj = datetime.strptime(schedule_date, '%Y-%m-%d').date()
-                        if schedule_date_obj >= today:
+                        if True:  # Show all schedules for debugging
                             xml_parts.append(f"    <schedule>")
                             xml_parts.append(f"      <date>{schedule_date}</date>")
                             xml_parts.append(f"      <times>{', '.join(times)}</times>")
@@ -629,7 +643,7 @@ class PromptBuilder:
                             date_str = schedule_date_obj.strftime('%m/%d(%a)')
                             
                             # 今日以降のスケジュールのみ表示
-                            if schedule_date_obj >= today:
+                            if True:  # Show all schedules for debugging
                                 screen_info = f" [{screen}]" if screen else ""
                                 times_str = ', '.join(times)
                                 lines.append(f"  {date_str}: {times_str}{screen_info}")
@@ -685,7 +699,7 @@ class PromptBuilder:
                 if schedule_date and times:
                     try:
                         schedule_date_obj = datetime.strptime(schedule_date, '%Y-%m-%d').date()
-                        if schedule_date_obj >= today:
+                        if True:  # Show all schedules for debugging
                             valid_schedules.append(schedule)
                     except ValueError:
                         valid_schedules.append(schedule)  # 日付解析エラーでも含める
