@@ -14,7 +14,7 @@ from discord.ext import commands, tasks
 sys.path.insert(0, str(Path(__file__).parent))
 
 from weekly_notifier import WeeklyNotifier
-from interactive_bot import InteractiveBot, MovieQueryParser, MovieDataSearcher, PlaywrightSearcher
+# Simplified imports - removing missing interactive_bot dependencies
 from discord_config import load_config
 from llm_responder import LLMResponder
 from ollama_client import OllamaClient
@@ -31,9 +31,10 @@ class CombinedMovieBot(commands.Bot):
         
         # 各機能コンポーネント初期化
         self.weekly_notifier = WeeklyNotifier()
-        self.query_parser = MovieQueryParser()
-        self.data_searcher = MovieDataSearcher()
-        self.playwright_searcher = PlaywrightSearcher()
+        # Simplified - removing missing interactive_bot components
+        # self.query_parser = MovieQueryParser()
+        # self.data_searcher = MovieDataSearcher()
+        # self.playwright_searcher = PlaywrightSearcher()
         
         # LLM応答システム初期化（設定により有効化）
         if self.bot_config.enable_ai_responses:
