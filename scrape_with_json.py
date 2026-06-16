@@ -21,6 +21,8 @@ from src.scraping.scrapers.ks_cinema_scraper import KsCinemaScraper
 from src.scraping.scrapers.shimotakaido_scraper import ShimotakaidoCinemaScraper
 from src.scraping.scrapers.waseda_shochiku_scraper import WasedaShochikuScraper
 from src.scraping.scrapers.shinjuku_musashino_scraper import ShinjukuMusashinoScraper
+from src.scraping.scrapers.eurospace_scraper import EurospaceScraper
+from src.scraping.scrapers.pole_pole_scraper import PolePoleHigashinakanoScraper
 
 
 def setup_logging(verbose: bool = False):
@@ -56,7 +58,9 @@ def main():
             'ks_cinema': KsCinemaScraper(),
             'shimotakaido': ShimotakaidoCinemaScraper(),
             'waseda_shochiku': WasedaShochikuScraper(),
-            'shinjuku_musashino': ShinjukuMusashinoScraper()
+            'shinjuku_musashino': ShinjukuMusashinoScraper(),
+            'eurospace': EurospaceScraper(),
+            'pole_pole': PolePoleHigashinakanoScraper()
         }
         
         theater_data_list = []
